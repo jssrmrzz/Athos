@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Athos.Api", "Athos.Api.csproj", "{EB84F363-0E25-88A2-CB45-5D99391FD270}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB84F363-0E25-88A2-CB45-5D99391FD270}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB84F363-0E25-88A2-CB45-5D99391FD270}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB84F363-0E25-88A2-CB45-5D99391FD270}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB84F363-0E25-88A2-CB45-5D99391FD270}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {83A66D02-964D-483C-AD44-27A55DCE60FF}
+	EndGlobalSection
+EndGlobal
