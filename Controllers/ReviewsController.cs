@@ -1,5 +1,5 @@
-using Athos.Api.Models;
 using Athos.Api.Services;
+using Athos.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Athos.Api.Controllers
@@ -10,9 +10,9 @@ namespace Athos.Api.Controllers
     {
         private readonly ReviewPollingService _pollingService;
 
-        public ReviewsController()
+        public ReviewsController(ReviewPollingService pollingService)
         {
-            _pollingService = new ReviewPollingService();
+            _pollingService = pollingService;
         }
 
         [HttpGet]

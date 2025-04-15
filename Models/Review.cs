@@ -2,6 +2,7 @@ namespace Athos.Api.Models
 {
     public class Review
 {
+    
     public string? ReviewId { get; set; }
     public string? Author { get; set; }
     public int Rating { get; set; }
