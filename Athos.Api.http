@@ -1,0 +1,6 @@
+@Athos.Api_HostAddress = http://localhost:5285
+
+GET {{Athos.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
