@@ -1,0 +1,23 @@
+[
+  {
+    "reviewId": "rev001",
+    "author": "Alondra Takito",
+    "rating": 5,
+    "comment": "Amazing service, super friendly staff!",
+    "timestamp": "2024-04-01T12:30:00Z"
+  },
+  {
+    "reviewId": "rev002",
+    "author": "Rogelio Ollifree",
+    "rating": 3,
+    "comment": "Okay experience, nothing special.",
+    "timestamp": "2024-04-02T15:45:00Z"
+  },
+  {
+    "reviewId": "rev003",
+    "author": "Carla Jenkins",
+    "rating": 1,
+    "comment": "Terrible! I waited an hour and they forgot my order.",
+    "timestamp": "2024-04-03T09:10:00Z"
+  }
+]
