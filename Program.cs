@@ -1,4 +1,6 @@
 using Athos.Api.Services;
+using Microsoft.EntityFrameworkCore;
+using Athos.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +21,9 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<ReviewPollingService>();
+builder.Services.AddDbContext<ReviewDbContext>(options =>
+    options.UseSqlite("Data Source=reviews.db"));
+builder.Services.AddScoped<ReviewPollingService>();
 
 var app = builder.Build();
 
