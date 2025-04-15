@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Athos.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e88482a3aa7838caccdb74d3f9fd1bb0ada0e046")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1270faa2824e4bc9fbc63ec74663cc1090b57561")]
 [assembly: System.Reflection.AssemblyProductAttribute("Athos.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Athos.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -19,5 +19,12 @@
     "rating": 1,
     "comment": "Terrible! I waited an hour and they forgot my order.",
     "timestamp": "2024-04-03T09:10:00Z"
+  },
+  {
+    "reviewId": "rev004",
+    "author": "Calvin Maru",
+    "rating": 2,
+    "comment": "Bathroom was absolutely FILTHY!",
+    "timestamp": "2024-04-03T09:30:00Z"
   }
 ]
