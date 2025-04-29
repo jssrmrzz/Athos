@@ -10,14 +10,12 @@ namespace Athos.Api.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly ReviewPollingService _pollingService;
-        private readonly ReviewDbContext _db;
         private readonly ReviewApprovalService _approvalService;
 
 
-        public ReviewsController(ReviewPollingService pollingService, ReviewDbContext db, ReviewApprovalService approvalService)
+        public ReviewsController(ReviewPollingService pollingService, ReviewApprovalService approvalService)
         {
             _pollingService = pollingService;
-            _db = db;
             _approvalService = approvalService;
         }
 
