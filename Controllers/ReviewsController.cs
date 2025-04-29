@@ -1,3 +1,4 @@
+using Athos.Api.Data;
 using Athos.Api.Services;
 using Athos.Api.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,17 @@ namespace Athos.Api.Controllers
     public class ReviewsController : ControllerBase
     {
         private readonly ReviewPollingService _pollingService;
+        private readonly ReviewDbContext _db;
+        private readonly ReviewApprovalService _approvalService;
 
-        public ReviewsController(ReviewPollingService pollingService)
+
+        public ReviewsController(ReviewPollingService pollingService, ReviewDbContext db, ReviewApprovalService approvalService)
         {
             _pollingService = pollingService;
+            _db = db;
+            _approvalService = approvalService;
         }
+
 
         [HttpGet]
         public ActionResult<List<ReviewOutputDto>> Get()
@@ -40,18 +47,14 @@ namespace Athos.Api.Controllers
         [HttpPost("respond")]
         public ActionResult RespondToReview([FromBody] ReviewResponseDto input)
         {
-            var reviews = _pollingService.GetReviews();
-            var review = reviews.FirstOrDefault(r => r.ReviewId == input.ReviewId);
+            var (isSuccess, errorMessage) = _approvalService.ApproveReview(input.ReviewId, input.FinalResponse);
 
-            if (review == null)
-                return NotFound("Review not found.");
+            if (!isSuccess)
+            {
+                return BadRequest(errorMessage);
+            }
 
-            review.FinalResponse = input.FinalResponse;
-            review.IsApproved = true;
-
-            Console.WriteLine($"✅ Response approved for review {review.ReviewId}:\n{input.FinalResponse}");
-
-            return Ok(review);
+            return Ok();
         }
     }
 }

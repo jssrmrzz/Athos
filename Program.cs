@@ -24,6 +24,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlite("Data Source=reviews.db"));
 builder.Services.AddScoped<ReviewPollingService>();
+builder.Services.AddScoped<ReviewApprovalService>();
 
 var app = builder.Build();
 
