@@ -6,27 +6,22 @@ namespace Athos.Api.Services
 {
     public class ReviewPollingService
     {
-        private readonly SentimentService _sentimentService = new SentimentService();
-        private readonly AutoReplyService _autoReplyService = new AutoReplyService();
-        private readonly NotificationService _notificationService = new NotificationService();
-        private readonly ReviewDbContext _db;
+        private readonly ReviewRepository _repo;
+        private readonly SentimentService _sentimentService = new();
+        private readonly AutoReplyService _autoReplyService = new();
+        private readonly NotificationService _notificationService = new();
 
-        private readonly string _mockDataPath = "Data/mockGoogleReviews.json";
-
-        public ReviewPollingService(ReviewDbContext dbContext)
+        public ReviewPollingService(ReviewRepository repo)
         {
-            _db = dbContext;
+            _repo = repo;
 
-            // Optionally seed DB if empty
-            if (!_db.Reviews.Any())
-            {
-                SeedReviewsFromJson();
-            }
+            // Move seeding responsibility to repository
+            _repo.SeedReviewsFromJsonIfEmpty();
         }
 
         public List<DbReview> GetReviews()
         {
-            var reviews = _db.Reviews.ToList();
+            var reviews = _repo.GetAllReviews();
 
             foreach (var review in reviews)
             {
@@ -40,25 +35,8 @@ namespace Athos.Api.Services
                 }
             }
 
-            _db.SaveChanges(); // Persist any updates
-
+            _repo.SaveChanges(); // Persist any updates
             return reviews;
-        }
-
-        private void SeedReviewsFromJson()
-        {
-            if (!File.Exists(_mockDataPath)) return;
-
-            var json = File.ReadAllText(_mockDataPath);
-            var reviews = JsonSerializer.Deserialize<List<DbReview>>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
-
-            if (reviews == null) return;
-
-            _db.Reviews.AddRange(reviews);
-            _db.SaveChanges();
         }
     }
 }
