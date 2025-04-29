@@ -24,7 +24,7 @@ namespace Athos.Api.Services
             }
         }
 
-        public List<Review> GetReviews()
+        public List<DbReview> GetReviews()
         {
             var reviews = _db.Reviews.ToList();
 
@@ -50,7 +50,7 @@ namespace Athos.Api.Services
             if (!File.Exists(_mockDataPath)) return;
 
             var json = File.ReadAllText(_mockDataPath);
-            var reviews = JsonSerializer.Deserialize<List<Review>>(json, new JsonSerializerOptions
+            var reviews = JsonSerializer.Deserialize<List<DbReview>>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
