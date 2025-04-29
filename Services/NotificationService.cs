@@ -4,7 +4,7 @@ namespace Athos.Api.Services
 {
     public class NotificationService
     {
-        public void SendAlert(Review review)
+        public void SendAlert(DbReview review)
         {
             Console.WriteLine("🚨 ALERT: Negative review received");
             Console.WriteLine($"- Author: {review.Author}");

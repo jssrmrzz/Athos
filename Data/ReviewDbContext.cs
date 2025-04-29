@@ -7,6 +7,6 @@ namespace Athos.Api.Data
     {
         public ReviewDbContext(DbContextOptions<ReviewDbContext> options) : base(options) { }
 
-        public DbSet<Review> Reviews { get; set; }
+        public DbSet<DbReview> Reviews { get; set; }
     }
 }
