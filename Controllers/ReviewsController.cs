@@ -16,10 +16,25 @@ namespace Athos.Api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Review>> Get()
+        public ActionResult<List<ReviewOutputDto>> Get()
         {
             var reviews = _pollingService.GetReviews();
-            return Ok(reviews);
+
+            var reviewDtos = reviews.Select(r => new ReviewOutputDto
+            {
+                ReviewId = r.ReviewId ?? "",
+                Author = r.Author ?? "",
+                Rating = r.Rating,
+                Comment = r.Comment ?? "",
+                Sentiment = r.Sentiment,
+                Status = r.Status,
+                SuggestedResponse = r.SuggestedResponse,
+                FinalResponse = r.FinalResponse,
+                SubmittedAgo = r.SubmittedAgo,
+                ApprovedAgo = r.ApprovedAgo
+            }).ToList();
+
+            return Ok(reviewDtos);
         }
 
         [HttpPost("respond")]
