@@ -1,5 +1,4 @@
 using Athos.ReviewAutomation.Models;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Athos.ReviewAutomation.Infrastructure.Data
@@ -8,6 +7,6 @@ namespace Athos.ReviewAutomation.Infrastructure.Data
     {
         public ReviewDbContext(DbContextOptions<ReviewDbContext> options) : base(options) { }
 
-        public DbSet<DbReview> Reviews { get; set; }
+        public DbSet<DbReview> Reviews { get; set; } = null!;
     }
 }
