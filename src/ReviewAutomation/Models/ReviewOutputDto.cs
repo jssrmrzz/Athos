@@ -10,8 +10,10 @@ namespace Athos.ReviewAutomation.Models
         public string Status { get; set; } = "Unclassified";
         public string? SuggestedResponse { get; set; }
         public string? FinalResponse { get; set; }
-        public string SubmittedAgo { get; set; } = string.Empty;
-        public string? ApprovedAgo { get; set; }
+        public DateTime? SubmittedAt { get; set; }
+
+        public DateTime? ApprovedAt { get; set; }
+
         public bool IsApproved { get; set; }
     }
 }

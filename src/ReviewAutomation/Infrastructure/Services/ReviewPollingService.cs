@@ -15,14 +15,40 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
         {
             _repo = repo;
 
-            // Move seeding responsibility to repository
+            // Seed mock reviews if needed
             _repo.SeedReviewsFromJsonIfEmpty();
         }
 
-        public List<DbReview> GetReviews()
+        public List<DbReview> GetReviews(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
         {
-            var reviews = _repo.GetAllReviews();
+            var reviews = _repo.GetAllReviews().AsQueryable();
 
+            // Filter by sentiment
+            if (!string.IsNullOrWhiteSpace(sentiment))
+                reviews = reviews.Where(r => r.Sentiment.Equals(sentiment, StringComparison.OrdinalIgnoreCase));
+
+            // Filter by approval status
+            if (isApproved.HasValue)
+                reviews = reviews.Where(r => r.IsApproved == isApproved.Value);
+
+            // Normalize inputs
+            sortBy = sortBy?.ToLower();
+            sortDirection = sortDirection?.ToLower();
+            bool desc = sortDirection == "desc";
+
+            // Sort
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                reviews = sortBy switch
+                {
+                    "Rating" => desc ? reviews.OrderByDescending(r => r.Rating) : reviews.OrderBy(r => r.Rating),
+                    "SubmittedAt" => desc ? reviews.OrderByDescending(r => r.SubmittedAt) : reviews.OrderBy(r => r.SubmittedAt),
+                    "ApprovedAt" => desc ? reviews.OrderByDescending(r => r.ApprovedAt) : reviews.OrderBy(r => r.ApprovedAt),
+                    _ => reviews // fallback to no sorting
+                };
+            }
+
+            // Enrich and alert
             foreach (var review in reviews)
             {
                 review.Sentiment = _sentimentService.AnalyzeSentiment(review.Rating, review.Comment);
@@ -35,8 +61,8 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                 }
             }
 
-            _repo.SaveChanges(); // Persist any updates
-            return reviews;
+            _repo.SaveChanges();
+            return reviews.ToList();
         }
     }
 }

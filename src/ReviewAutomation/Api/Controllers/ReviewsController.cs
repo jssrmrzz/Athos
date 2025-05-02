@@ -22,9 +22,37 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
 
         [HttpGet]
-        public ActionResult<List<ReviewOutputDto>> Get()
+        public ActionResult<List<ReviewOutputDto>> Get(
+            [FromQuery] string? sentiment,
+            [FromQuery] bool? isApproved,
+            [FromQuery] string sortBy = "SubmittedAt",
+            [FromQuery] string sortDirection = "desc")
         {
-            var reviews = _pollingService.GetReviews();
+            // Validate sortBy
+            var validSortFields = new[] { "Rating", "SubmittedAt", "ApprovedAt" };
+            if (!validSortFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
+            {
+                return BadRequest($"❌ Invalid sortBy value. Use one of: {string.Join(", ", validSortFields)}");
+            }
+
+            // Validate sortDirection
+            if (!string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("❌ Invalid sortDirection. Use 'asc' or 'desc'.");
+            }
+
+            // Optionally validate sentiment (if passed)
+            if (!string.IsNullOrWhiteSpace(sentiment))
+            {
+                var validSentiments = new[] { "positive", "neutral", "negative" };
+                if (!validSentiments.Contains(sentiment.ToLower()))
+                {
+                    return BadRequest($"❌ Invalid sentiment. Allowed values: {string.Join(", ", validSentiments)}");
+                }
+            }
+
+            var reviews = _pollingService.GetReviews(sentiment, isApproved, sortBy, sortDirection);
 
             var reviewDtos = reviews.Select(r => new ReviewOutputDto
             {
@@ -36,14 +64,13 @@ namespace Athos.ReviewAutomation.Api.Controllers
                 Status = r.Status,
                 SuggestedResponse = r.SuggestedResponse,
                 FinalResponse = r.FinalResponse,
-                SubmittedAgo = r.SubmittedAgo,
-                ApprovedAgo = r.ApprovedAgo,
-                IsApproved = r.IsApproved,
-
+                SubmittedAt = r.SubmittedAt,
+                ApprovedAt = r.ApprovedAt
             }).ToList();
 
             return Ok(reviewDtos);
         }
+
 
         [HttpPost("respond")]
         public ActionResult RespondToReview([FromBody] ReviewResponseDto input)
