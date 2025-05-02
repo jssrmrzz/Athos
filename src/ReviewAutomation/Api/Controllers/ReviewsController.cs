@@ -37,7 +37,9 @@ namespace Athos.ReviewAutomation.Api.Controllers
                 SuggestedResponse = r.SuggestedResponse,
                 FinalResponse = r.FinalResponse,
                 SubmittedAgo = r.SubmittedAgo,
-                ApprovedAgo = r.ApprovedAgo
+                ApprovedAgo = r.ApprovedAgo,
+                IsApproved = r.IsApproved,
+
             }).ToList();
 
             return Ok(reviewDtos);
