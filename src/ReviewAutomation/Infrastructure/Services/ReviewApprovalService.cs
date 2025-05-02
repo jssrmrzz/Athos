@@ -11,7 +11,7 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
             _db = db;
         }
 
-        public (bool isSuccess, string errorMessage) ApproveReview(string reviewId, string finalResponse)
+        public (bool isSuccess, string? errorMessage) ApproveReview(string reviewId, string finalResponse)
         {
             var review = _db.Reviews.FirstOrDefault(r => r.ReviewId == reviewId);
 
@@ -25,13 +25,19 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                 return (false, "Review has already been approved.");
             }
 
+            if (string.IsNullOrWhiteSpace(finalResponse))
+            {
+                return (false, "Final response cannot be empty.");
+            }
+
             review.FinalResponse = finalResponse;
             review.IsApproved = true;
             review.ApprovedAt = DateTime.UtcNow;
 
             _db.SaveChanges();
 
-            return (true, "");
+            return (true, null);
         }
+
     }
 }
