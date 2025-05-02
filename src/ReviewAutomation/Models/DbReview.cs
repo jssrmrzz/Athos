@@ -20,6 +20,9 @@ namespace Athos.ReviewAutomation.Models
     public bool IsApproved { get; set; } = false;
     
     public DateTime? ApprovedAt { get; set; }
+    
+    public DateTime? SubmittedAt { get; set; }
+
 
 
     public string Status
