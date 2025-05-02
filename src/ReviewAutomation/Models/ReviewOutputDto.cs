@@ -12,5 +12,6 @@ namespace Athos.ReviewAutomation.Models
         public string? FinalResponse { get; set; }
         public string SubmittedAgo { get; set; } = string.Empty;
         public string? ApprovedAgo { get; set; }
+        public bool IsApproved { get; set; }
     }
 }
