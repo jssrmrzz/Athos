@@ -10,13 +10,16 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
         private readonly SentimentService _sentimentService = new();
         private readonly AutoReplyService _autoReplyService = new();
         private readonly NotificationService _notificationService = new();
-
-        public ReviewPollingService(ReviewRepository repo)
+        private readonly GoogleReviewClient _googleReviewClient;
+        
+        public ReviewPollingService(ReviewRepository repo, GoogleReviewClient googleReviewClient)
         {
             _repo = repo;
 
             // Seed mock reviews if needed
             _repo.SeedReviewsFromJsonIfEmpty();
+
+            _googleReviewClient = googleReviewClient;
         }
 
         public List<DbReview> GetReviews(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
@@ -64,5 +67,42 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
             _repo.SaveChanges();
             return reviews.ToList();
         }
+        
+        public async Task FetchAndStoreGoogleReviewsAsync()
+        {
+            var externalReviews = await _googleReviewClient.FetchReviewsAsync();
+
+            var dbReviews = externalReviews.Select(r => new DbReview
+            {
+                ReviewId = r.ReviewId,
+                Author = r.Reviewer?.DisplayName ?? "Anonymous",
+                Rating = StarRatingToInt(r.StarRating),
+                Comment = r.Comment,
+                SubmittedAt = DateTime.Parse(r.CreateTime),
+                FinalResponse = r.ReviewReply?.Comment,
+                ApprovedAt = string.IsNullOrEmpty(r.ReviewReply?.UpdateTime)
+                    ? null
+                    : DateTime.Parse(r.ReviewReply.UpdateTime),
+                IsApproved = r.ReviewReply != null
+            }).ToList();
+
+            _repo.AddReviewsIfNotExists(dbReviews);
+        }
+
+        
+        private int StarRatingToInt(string? rating)
+        {
+            return rating?.ToLowerInvariant() switch
+            {
+                "one" => 1,
+                "two" => 2,
+                "three" => 3,
+                "four" => 4,
+                "five" => 5,
+                _ => 0
+            };
+        }
+
+
     }
 }
