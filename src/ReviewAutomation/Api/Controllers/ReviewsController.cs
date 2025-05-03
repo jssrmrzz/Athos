@@ -84,5 +84,22 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
             return Ok();
         }
+        
+        [HttpPost("import-google")]
+        public async Task<ActionResult> ImportFromGoogle([FromServices] GoogleReviewIngestionService ingestionService)
+        {
+            var importedCount = await ingestionService.FetchAndSaveReviewsAsync();
+
+            return Ok(new { message = $"{importedCount} new reviews imported." });
+        }
+        
+        [HttpPost("ingest")]
+        public async Task<IActionResult> IngestReviews()
+        {
+            await _pollingService.FetchAndStoreGoogleReviewsAsync();
+            return Ok("Fetched and stored reviews.");
+        }
+
+
     }
 }

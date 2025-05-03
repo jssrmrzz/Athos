@@ -20,6 +20,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Athos.ReviewAutomation.Infrastructure", "src\ReviewAutomation\Infrastructure\Athos.ReviewAutomation.Infrastructure.csproj", "{46BDBE23-7B5A-4BD5-9D6A-7A69C5E55B53}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{4346A6AC-958D-2898-265F-CF2F88A0C00F}"
+	ProjectSection(SolutionItems) = preProject
+		src\ReviewAutomation\Models\GoogleReviewDto = src\ReviewAutomation\Models\GoogleReviewDto
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Athos.ReviewAutomation.Models", "src\ReviewAutomation\Models\Athos.ReviewAutomation.Models.csproj", "{B8EF4D36-2816-4C9F-959A-D60581FA1386}"
 EndProject

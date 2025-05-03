@@ -55,6 +55,26 @@ namespace Athos.ReviewAutomation.Infrastructure.Repositories
         {
             _db.SaveChanges();
         }
+        
+        public void AddReviews(List<DbReview> reviews)
+        {
+            _db.Reviews.AddRange(reviews);
+        }
+        
+        public void AddReviewsIfNotExists(List<DbReview> reviews)
+        {
+            foreach (var review in reviews)
+            {
+                if (!_db.Reviews.Any(r => r.ReviewId == review.ReviewId))
+                {
+                    _db.Reviews.Add(review);
+                }
+            }
+
+            _db.SaveChanges();
+        }
+
+
 
     }
 }
