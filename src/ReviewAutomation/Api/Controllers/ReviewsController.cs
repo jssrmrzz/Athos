@@ -1,4 +1,3 @@
-using Athos.ReviewAutomation.Core.Services;
 using Athos.ReviewAutomation.Infrastructure.Services;
 using Athos.ReviewAutomation.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -20,66 +19,84 @@ namespace Athos.ReviewAutomation.Api.Controllers
             _approvalService = approvalService;
         }
 
-        // ✅ GET: Fetch reviews with optional filters and sorting
+        // ✅ GET: Fetch reviews with optional filters, sorting, and pagination
         [HttpGet]
-        public ActionResult<List<ReviewOutputDto>> Get(
+        public ActionResult<object> Get(
             [FromQuery] string? sentiment,
             [FromQuery] bool? isApproved,
             [FromQuery] string sortBy = "SubmittedAt",
-            [FromQuery] string sortDirection = "desc")
+            [FromQuery] string sortDirection = "desc",
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10) 
         {
-            // Validate sortBy input
-            var validSortFields = new[] { "Rating", "SubmittedAt", "ApprovedAt" };
-            if (!validSortFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
-                return BadRequest($"❌ Invalid sortBy value. Use one of: {string.Join(", ", validSortFields)}");
+        // Validate pagination
+        if (page < 1 || pageSize < 1)
+            return BadRequest("❌ 'page' and 'pageSize' must be positive integers.");
 
-            // Validate sortDirection input
-            if (!string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) &&
-                !string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase))
-                return BadRequest("❌ Invalid sortDirection. Use 'asc' or 'desc'.");
+        // Validate sortBy
+        var validSortFields = new[] { "Rating", "SubmittedAt", "ApprovedAt" };
+        if (!validSortFields.Contains(sortBy, StringComparer.OrdinalIgnoreCase))
+            return BadRequest($"❌ Invalid sortBy value. Use one of: {string.Join(", ", validSortFields)}");
 
-            // Validate sentiment (if passed)
-            if (!string.IsNullOrWhiteSpace(sentiment))
-            {
-                var validSentiments = new[] { "positive", "neutral", "negative" };
-                if (!validSentiments.Contains(sentiment.ToLower()))
-                    return BadRequest($"❌ Invalid sentiment. Allowed values: {string.Join(", ", validSentiments)}");
-            }
+        // Validate sortDirection
+        if (!string.Equals(sortDirection, "asc", StringComparison.OrdinalIgnoreCase) &&
+        !string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("❌ Invalid sortDirection. Use 'asc' or 'desc'.");
 
-            // Fetch and project results
-            var reviews = _pollingService.GetReviews(sentiment, isApproved, sortBy, sortDirection);
-
-            var reviewDtos = reviews.Select(r => new ReviewOutputDto
-            {
-                ReviewId = r.ReviewId ?? "",
-                Author = r.Author ?? "",
-                Rating = r.Rating,
-                Comment = r.Comment ?? "",
-                Sentiment = r.Sentiment,
-                Status = r.Status,
-                SuggestedResponse = r.SuggestedResponse,
-                FinalResponse = r.FinalResponse,
-                SubmittedAt = r.SubmittedAt,
-                ApprovedAt = r.ApprovedAt,
-                IsApproved = r.IsApproved 
-            }).ToList();
-
-            return Ok(reviewDtos);
+        // Validate sentiment
+        if (!string.IsNullOrWhiteSpace(sentiment))
+        {
+            var validSentiments = new[] { "positive", "neutral", "negative" };
+            if (!validSentiments.Contains(sentiment.ToLower()))
+                return BadRequest($"❌ Invalid sentiment. Allowed values: {string.Join(", ", validSentiments)}");
         }
+    
+        // Fetch filtered and sorted reviews
+        var allReviews = _pollingService.GetReviews(sentiment, isApproved, sortBy, sortDirection);
+        var totalCount = allReviews.Count;
 
-        // ✅ POST: Approve and respond to a review
+        // Apply pagination
+        var pagedReviews = allReviews
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var reviewDtos = pagedReviews.Select(r => new ReviewOutputDto
+        {
+            ReviewId = r.ReviewId ?? "",
+            Author = r.Author ?? "",
+            Rating = r.Rating,
+            Comment = r.Comment ?? "",
+            Sentiment = r.Sentiment,
+            Status = r.Status,
+            SuggestedResponse = r.SuggestedResponse,
+            FinalResponse = r.FinalResponse,
+            SubmittedAt = r.SubmittedAt,
+            ApprovedAt = r.ApprovedAt,
+            IsApproved = r.IsApproved
+        }).ToList();
+
+        // Return structured response
+        return Ok(new
+        {
+            page,
+            pageSize,
+            totalCount,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize),
+            data = reviewDtos
+        });
+    }
+
+
+        // ✅ POST: Approve and finalize a review response
         [HttpPost("respond")]
         public ActionResult RespondToReview([FromBody] ReviewResponseDto input)
         {
             var (isSuccess, errorMessage) = _approvalService.ApproveReview(input.ReviewId, input.FinalResponse);
-
-            if (!isSuccess)
-                return BadRequest(errorMessage);
-
-            return Ok();
+            return isSuccess ? Ok() : BadRequest(errorMessage);
         }
 
-        // ✅ POST: Trigger ingestion from Google mock API (version A)
+        // ✅ POST: Import reviews from Google Mock API
         [HttpPost("import-google")]
         public async Task<ActionResult> ImportFromGoogle([FromServices] GoogleReviewIngestionService ingestionService)
         {
@@ -87,7 +104,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
             return Ok(new { message = $"{importedCount} new reviews imported." });
         }
 
-        // ✅ POST: Alternate trigger for ingestion (version B - shorter response)
+        // ✅ POST: Alternative import endpoint (simpler response)
         [HttpPost("ingest")]
         public async Task<IActionResult> IngestReviews([FromServices] GoogleReviewIngestionService service)
         {
