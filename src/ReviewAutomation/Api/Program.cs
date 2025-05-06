@@ -1,4 +1,5 @@
 using Athos.ReviewAutomation.Application.UseCases.Reviews;
+using Athos.ReviewAutomation.Application.UseCases;
 using Athos.ReviewAutomation.Core.Entities;
 using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Core.Services;
@@ -17,7 +18,7 @@ builder.Services.AddDbContext<ReviewDbContext>(options =>
         b.MigrationsAssembly("Athos.ReviewAutomation.Infrastructure")));
 
 // Register infrastructure services
-builder.Services.AddScoped<ReviewRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<GoogleReviewClient>();
 
 // Register internal services
