@@ -1,8 +1,8 @@
 using Athos.ReviewAutomation.Core.Interfaces;
-using Athos.ReviewAutomation.Models;
+using Athos.ReviewAutomation.Core.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Athos.ReviewAutomation.Application.UseCases.Reviews;
-using Athos.ReviewAutomation.Infrastructure.Services;
+
 
 
 namespace Athos.ReviewAutomation.Api.Controllers

@@ -2,19 +2,20 @@ using Athos.ReviewAutomation.Core.Entities;
 using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Core.Services;
 using Athos.ReviewAutomation.Infrastructure.Repositories;
+using Athos.ReviewAutomation.Infrastructure.Services;
 using Athos.ReviewAutomation.Models;
 
-namespace Athos.ReviewAutomation.Infrastructure.Services
+namespace Athos.ReviewAutomation.Application.UseCases
 {
     public class ReviewPollingService : IReviewPollingService
     {
-        private readonly ReviewRepository _repo;
+        private readonly IReviewRepository _repo;
         private readonly SentimentService _sentimentService = new();
         private readonly AutoReplyService _autoReplyService = new();
         private readonly NotificationService _notificationService = new();
         private readonly GoogleReviewClient _googleReviewClient;
         
-        public ReviewPollingService(ReviewRepository repo, GoogleReviewClient googleReviewClient)
+        public ReviewPollingService(IReviewRepository repo, GoogleReviewClient googleReviewClient)
         {
             _repo = repo;
 

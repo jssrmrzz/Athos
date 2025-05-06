@@ -1,3 +1,4 @@
+using Athos.ReviewAutomation.Core.DTOs;
 using Athos.ReviewAutomation.Models;
 
 namespace Athos.ReviewAutomation.Application.UseCases.Reviews

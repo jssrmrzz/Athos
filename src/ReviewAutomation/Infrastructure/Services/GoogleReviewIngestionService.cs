@@ -7,9 +7,9 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
     public class GoogleReviewIngestionService : IGoogleReviewIngestionService
     {
         private readonly GoogleReviewClient _client;
-        private readonly ReviewRepository _repo;
+        private readonly IReviewRepository _repo;
 
-        public GoogleReviewIngestionService(GoogleReviewClient client, ReviewRepository repo)
+        public GoogleReviewIngestionService(GoogleReviewClient client, IReviewRepository repo)
         {
             _client = client;
             _repo = repo;

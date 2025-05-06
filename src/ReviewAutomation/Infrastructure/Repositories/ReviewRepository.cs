@@ -1,12 +1,13 @@
 using System.Text.Json;
 using Athos.ReviewAutomation.Core.Entities;
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Infrastructure.Data;
 
 
 
 namespace Athos.ReviewAutomation.Infrastructure.Repositories
 {
-    public class ReviewRepository
+    public class ReviewRepository : IReviewRepository
     {
         private readonly ReviewDbContext _db;
 
