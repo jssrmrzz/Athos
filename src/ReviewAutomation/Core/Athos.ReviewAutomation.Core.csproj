@@ -6,6 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj" />
+        <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj"/>
+        
     </ItemGroup>
+    
 </Project>

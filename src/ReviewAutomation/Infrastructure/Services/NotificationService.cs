@@ -1,4 +1,4 @@
-using Athos.ReviewAutomation.Models;
+using Athos.ReviewAutomation.Core.Entities;
 
 
 namespace Athos.ReviewAutomation.Infrastructure.Services
