@@ -1,4 +1,4 @@
-using Athos.ReviewAutomation.Models;
+using Athos.ReviewAutomation.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Athos.ReviewAutomation.Infrastructure.Data

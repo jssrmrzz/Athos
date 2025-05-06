@@ -8,7 +8,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Core\Athos.ReviewAutomation.Core.csproj" />
         <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj" />
-        <ProjectReference Include="..\Application\Athos.ReviewAutomation.Application.csproj" />
     </ItemGroup>
 
     <ItemGroup>
