@@ -1,3 +1,4 @@
+using Athos.ReviewAutomation.Core.DTOs;
 using Athos.ReviewAutomation.Infrastructure.Services;
 using Athos.ReviewAutomation.Models;
 
