@@ -1,7 +1,7 @@
 using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Infrastructure.Data;
 
-namespace Athos.ReviewAutomation.Infrastructure.Services
+namespace Athos.ReviewAutomation.Application.UseCases
 {
     public class ReviewApprovalService : IReviewApprovalService
     {
