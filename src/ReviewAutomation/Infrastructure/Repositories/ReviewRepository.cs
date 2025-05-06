@@ -1,6 +1,6 @@
 using System.Text.Json;
+using Athos.ReviewAutomation.Core.Entities;
 using Athos.ReviewAutomation.Infrastructure.Data;
-using Athos.ReviewAutomation.Models;
 
 
 
