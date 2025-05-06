@@ -1,29 +1,40 @@
+using Athos.ReviewAutomation.Application.UseCases.Reviews;
+using Athos.ReviewAutomation.Core.Entities;
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Core.Services;
 using Athos.ReviewAutomation.Infrastructure.Data;
 using Athos.ReviewAutomation.Infrastructure.Repositories;
 using Athos.ReviewAutomation.Infrastructure.Services;
-using Athos.ReviewAutomation.Models;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.Extensions.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connect to SQLite with Migrations assembly set
+// Configure SQLite with migrations assembly
 builder.Services.AddDbContext<ReviewDbContext>(options =>
     options.UseSqlite("Data Source=reviews.db", b =>
         b.MigrationsAssembly("Athos.ReviewAutomation.Infrastructure")));
 
-// Register internal services
+// Register infrastructure services
 builder.Services.AddScoped<ReviewRepository>();
-builder.Services.AddScoped<ReviewPollingService>();
-builder.Services.AddScoped<ReviewApprovalService>();
+builder.Services.AddScoped<GoogleReviewClient>();
+
+// Register internal services
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<AutoReplyService>();
 builder.Services.AddScoped<SentimentService>();
+builder.Services.AddScoped<ReviewApprovalService>();
+builder.Services.AddScoped<ReviewPollingService>();
 builder.Services.AddScoped<GoogleReviewIngestionService>();
 
-// Register HttpClient for GoogleReviewClient with Polly retry logic
+// Register use case interfaces
+builder.Services.AddScoped<IGetReviewsUseCase, GetReviewsUseCase>();
+builder.Services.AddScoped<IApproveReviewUseCase, ApproveReviewUseCase>();
+builder.Services.AddScoped<IReviewPollingService, ReviewPollingService>();
+builder.Services.AddScoped<IGoogleReviewIngestionService, GoogleReviewIngestionService>();
+
+// Configure HttpClient with Polly retry policy
 builder.Services.AddHttpClient<GoogleReviewClient>(client =>
     {
         client.BaseAddress = new Uri("https://localhost:7157/");
@@ -37,7 +48,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Define Polly retry policy
+// Define retry policy for transient HTTP failures
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions
@@ -47,11 +58,11 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
             sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
             onRetry: (outcome, timespan, retryAttempt, context) =>
             {
-                Console.WriteLine($"⚠️ Retry {retryAttempt} after {timespan.TotalSeconds}s due to {outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString()}");
+                Console.WriteLine($"Retry {retryAttempt} after {timespan.TotalSeconds}s due to {outcome.Exception?.Message ?? outcome.Result?.StatusCode.ToString()}");
             });
 }
 
-// Swagger UI
+// Configure middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -60,4 +71,5 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+
 app.Run();

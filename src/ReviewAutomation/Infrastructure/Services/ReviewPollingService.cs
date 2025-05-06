@@ -1,10 +1,12 @@
+using Athos.ReviewAutomation.Core.Entities;
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Core.Services;
 using Athos.ReviewAutomation.Infrastructure.Repositories;
 using Athos.ReviewAutomation.Models;
 
 namespace Athos.ReviewAutomation.Infrastructure.Services
 {
-    public class ReviewPollingService
+    public class ReviewPollingService : IReviewPollingService
     {
         private readonly ReviewRepository _repo;
         private readonly SentimentService _sentimentService = new();

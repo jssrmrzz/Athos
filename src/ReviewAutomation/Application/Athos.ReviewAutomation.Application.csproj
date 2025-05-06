@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Athos.ReviewAutomation.Core.csproj" />
+    <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj" />
+    <ProjectReference Include="..\Infrastructure\Athos.ReviewAutomation.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

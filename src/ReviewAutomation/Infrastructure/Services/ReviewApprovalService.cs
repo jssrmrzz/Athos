@@ -1,8 +1,9 @@
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Infrastructure.Data;
 
 namespace Athos.ReviewAutomation.Infrastructure.Services
 {
-    public class ReviewApprovalService
+    public class ReviewApprovalService : IReviewApprovalService
     {
         private readonly ReviewDbContext _db;
 

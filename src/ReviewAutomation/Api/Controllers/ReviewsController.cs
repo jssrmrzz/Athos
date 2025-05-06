@@ -1,6 +1,9 @@
-using Athos.ReviewAutomation.Infrastructure.Services;
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Models;
 using Microsoft.AspNetCore.Mvc;
+using Athos.ReviewAutomation.Application.UseCases.Reviews;
+using Athos.ReviewAutomation.Infrastructure.Services;
+
 
 namespace Athos.ReviewAutomation.Api.Controllers
 {
@@ -8,16 +11,17 @@ namespace Athos.ReviewAutomation.Api.Controllers
     [Route("api/[controller]")]
     public class ReviewsController : ControllerBase
     {
-        private readonly ReviewPollingService _pollingService;
-        private readonly ReviewApprovalService _approvalService;
+        private readonly IGetReviewsUseCase _getReviews;
+        private readonly IApproveReviewUseCase _approveReview;
 
         public ReviewsController(
-            ReviewPollingService pollingService,
-            ReviewApprovalService approvalService)
+            IGetReviewsUseCase getReviews,
+            IApproveReviewUseCase approveReview)
         {
-            _pollingService = pollingService;
-            _approvalService = approvalService;
+            _getReviews = getReviews;
+            _approveReview = approveReview;
         }
+
 
         // ✅ GET: Fetch reviews with optional filters, sorting, and pagination
         [HttpGet]
@@ -52,7 +56,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
         }
     
         // Fetch filtered and sorted reviews
-        var allReviews = _pollingService.GetReviews(sentiment, isApproved, sortBy, sortDirection);
+        var allReviews = _getReviews.Execute(sentiment, isApproved, sortBy, sortDirection);
         var totalCount = allReviews.Count;
 
         // Apply pagination
@@ -92,13 +96,13 @@ namespace Athos.ReviewAutomation.Api.Controllers
         [HttpPost("respond")]
         public ActionResult RespondToReview([FromBody] ReviewResponseDto input)
         {
-            var (isSuccess, errorMessage) = _approvalService.ApproveReview(input.ReviewId, input.FinalResponse);
+            var (isSuccess, errorMessage) = _approveReview.Execute(input);
             return isSuccess ? Ok() : BadRequest(errorMessage);
         }
 
         // ✅ POST: Import reviews from Google Mock API
         [HttpPost("import-google")]
-        public async Task<ActionResult> ImportFromGoogle([FromServices] GoogleReviewIngestionService ingestionService)
+        public async Task<ActionResult> ImportFromGoogle([FromServices] IGoogleReviewIngestionService ingestionService)
         {
             var importedCount = await ingestionService.FetchAndSaveReviewsAsync();
             return Ok(new { message = $"{importedCount} new reviews imported." });
@@ -106,7 +110,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
         // ✅ POST: Alternative import endpoint (simpler response)
         [HttpPost("ingest")]
-        public async Task<IActionResult> IngestReviews([FromServices] GoogleReviewIngestionService service)
+        public async Task<IActionResult> IngestReviews([FromServices] IGoogleReviewIngestionService service)
         {
             var count = await service.FetchAndSaveReviewsAsync();
             return Ok($"✅ Ingested {count} reviews.");

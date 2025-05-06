@@ -1,9 +1,10 @@
+using Athos.ReviewAutomation.Core.Entities;
+using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Infrastructure.Repositories;
-using Athos.ReviewAutomation.Models;
 
 namespace Athos.ReviewAutomation.Infrastructure.Services
 {
-    public class GoogleReviewIngestionService
+    public class GoogleReviewIngestionService : IGoogleReviewIngestionService
     {
         private readonly GoogleReviewClient _client;
         private readonly ReviewRepository _repo;
