@@ -65,7 +65,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
             .Take(pageSize)
             .ToList();
 
-        var reviewDtos = pagedReviews.Select(r => new ReviewOutputDto
+        var reviewDtos = pagedReviews.Select(r => new GetReviewsResponseOutputDto()
         {
             ReviewId = r.ReviewId ?? "",
             Author = r.Author ?? "",
@@ -94,7 +94,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
         // ✅ POST: Approve and finalize a review response
         [HttpPost("respond")]
-        public ActionResult RespondToReview([FromBody] ReviewResponseDto input)
+        public ActionResult RespondToReview([FromBody] ApproveReviewRequestDto input)
         {
             var (isSuccess, errorMessage) = _approveReview.Execute(input);
             return isSuccess ? Ok() : BadRequest(errorMessage);

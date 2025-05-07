@@ -1,6 +1,6 @@
 namespace Athos.ReviewAutomation.Application.DTOs.Reviews
 {
-    public class ReviewOutputDto
+    public class GetReviewsResponseOutputDto
     {
         public string ReviewId { get; set; } = string.Empty;
         public string Author { get; set; } = string.Empty;
