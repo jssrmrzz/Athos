@@ -1,4 +1,4 @@
-namespace Athos.ReviewAutomation.Core.DTOs
+namespace Athos.ReviewAutomation.Application.DTOs.Reviews
 {
     public class ReviewResponseDto
     {
