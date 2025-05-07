@@ -1,12 +1,14 @@
+using Athos.ReviewAutomation.Application.DTOs;
 using Athos.ReviewAutomation.Application.DTOs.Reviews;
+using Athos.ReviewAutomation.Core.Interfaces;
 
 namespace Athos.ReviewAutomation.Application.UseCases.Reviews
 {
     public class ApproveReviewUseCase : IApproveReviewUseCase
     {
-        private readonly ReviewApprovalService _approvalService;
+        private readonly IReviewApprovalService _approvalService;
 
-        public ApproveReviewUseCase(ReviewApprovalService approvalService)
+        public ApproveReviewUseCase(IReviewApprovalService approvalService)
         {
             _approvalService = approvalService;
         }
