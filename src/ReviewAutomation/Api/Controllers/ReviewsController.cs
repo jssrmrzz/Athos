@@ -1,5 +1,5 @@
 using Athos.ReviewAutomation.Core.Interfaces;
-using Athos.ReviewAutomation.Core.DTOs;
+using Athos.ReviewAutomation.Application.DTOs.Reviews;
 using Microsoft.AspNetCore.Mvc;
 using Athos.ReviewAutomation.Application.UseCases.Reviews;
 
