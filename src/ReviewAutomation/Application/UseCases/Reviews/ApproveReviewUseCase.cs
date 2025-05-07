@@ -11,7 +11,7 @@ namespace Athos.ReviewAutomation.Application.UseCases.Reviews
             _approvalService = approvalService;
         }
 
-        public (bool isSuccess, string errorMessage) Execute(ReviewResponseDto input)
+        public (bool isSuccess, string errorMessage) Execute(ApproveReviewRequestDto input)
         {
             return _approvalService.ApproveReview(input.ReviewId, input.FinalResponse);
         }
