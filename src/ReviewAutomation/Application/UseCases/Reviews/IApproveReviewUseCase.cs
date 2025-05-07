@@ -4,6 +4,6 @@ namespace Athos.ReviewAutomation.Application.UseCases.Reviews
 {
     public interface IApproveReviewUseCase
     {
-        (bool isSuccess, string errorMessage) Execute(ReviewResponseDto input);
+        (bool isSuccess, string errorMessage) Execute(ApproveReviewRequestDto input);
     }
 }
