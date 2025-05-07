@@ -26,6 +26,8 @@ namespace Athos.ReviewAutomation.Api.Extensions
             services.AddScoped<NotificationService>();
             services.AddScoped<AutoReplyService>();
             services.AddScoped<SentimentService>();
+            services.AddScoped<IReviewApprovalService, ReviewApprovalService>();
+
 
             services.AddHttpClient<GoogleReviewClient>(client =>
                 {
