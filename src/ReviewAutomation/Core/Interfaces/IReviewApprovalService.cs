@@ -1,3 +1,6 @@
+using Athos.ReviewAutomation.Core.Entities;
+
+
 namespace Athos.ReviewAutomation.Core.Interfaces
 {
     public interface IReviewApprovalService
