@@ -10,6 +10,8 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
         public GoogleReviewClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
+            Console.WriteLine($"✅ GoogleReviewClient base URL: {_httpClient.BaseAddress}");
+
         }
 
         public async Task<List<GoogleReviewDto>> FetchReviewsAsync()
