@@ -47,6 +47,11 @@ namespace Athos.ReviewAutomation.Api.Extensions
             {
                 client.BaseAddress = new Uri("http://localhost:11434/"); // Default for Ollama
             }).AddPolicyHandler(GetRetryPolicy());
+            
+            services.AddHttpClient<GoogleReviewClient>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7157/");
+            });
 
             // Register LLM client dynamically based on appsettings config
             var llmProvider = config["LLMProvider"]?.ToLowerInvariant();
