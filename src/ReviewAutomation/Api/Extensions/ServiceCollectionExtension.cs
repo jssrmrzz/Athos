@@ -54,21 +54,23 @@ namespace Athos.ReviewAutomation.Api.Extensions
             });
 
             // Register LLM client dynamically based on appsettings config
-            var llmProvider = config["LLMProvider"]?.ToLowerInvariant();
-
-            switch (llmProvider)
+            // Register the active LLM implementation and wrap with retry/fallback handler
+            services.AddScoped<ILlmClient>(sp =>
             {
-                case "openai":
-                    services.AddScoped<ILlmClient, OpenAiClient>();
-                    break;
+                var config = sp.GetRequiredService<IConfiguration>();
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                var logger = sp.GetRequiredService<ILogger<ResilientLlmClient>>();
+                var provider = config["LLMProvider"]?.ToLowerInvariant();
 
-                case "local":
-                    services.AddScoped<ILlmClient, LocalLlmClient>();
-                    break;
+                ILlmClient baseClient = provider switch
+                {
+                    "openai" => new OpenAiClient(factory, config),
+                    "local" => new LocalLlmClient(factory, config),
+                    _ => throw new InvalidOperationException("Unsupported LLM provider configured.")
+                };
 
-                default:
-                    throw new Exception("Invalid or missing 'LLMProvider' in appsettings.json. Use 'OpenAI' or 'Local'.");
-            }
+                return new ResilientLlmClient(baseClient, logger);
+            });
 
             return services;
         }
