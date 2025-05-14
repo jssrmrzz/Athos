@@ -2,10 +2,10 @@ using Athos.ReviewAutomation.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Clean architecture-style service registration
+// Register services using extension methods
 builder.Services
-    .AddInfrastructure("Data Source=reviews.db")
-    .AddApplicationServices();
+    .AddInfrastructure("Data Source=reviews.db", builder.Configuration)
+    .AddApplicationServices(); // ✅ properly chained now
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
