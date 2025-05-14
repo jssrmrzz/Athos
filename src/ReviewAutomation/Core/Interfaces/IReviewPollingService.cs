@@ -4,6 +4,6 @@ namespace Athos.ReviewAutomation.Core.Entities
 {
     public interface IReviewPollingService
     {
-        List<DbReview> GetReviews(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection);
+        Task<List<DbReview>> GetReviews(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection);
     }
 }
