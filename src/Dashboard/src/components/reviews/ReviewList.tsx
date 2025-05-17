@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { Loader2 } from "lucide-react"
 
 type Review = {
     reviewId: string
@@ -16,9 +16,9 @@ type Review = {
 export function ReviewList() {
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
-    const [editingReviewId, setEditingReviewId] = useState<string | null>(null)
-    const [customResponse, setCustomResponse] = useState<string>("")
+    const [submittingId, setSubmittingId] = useState<string | null>(null)
 
+    // Fetch reviews from API
     useEffect(() => {
         async function fetchReviews() {
             try {
@@ -35,7 +35,10 @@ export function ReviewList() {
         fetchReviews()
     }, [])
 
+    // Approve review via API
     const handleApprove = async (reviewId: string, finalResponse: string) => {
+        setSubmittingId(reviewId)
+
         try {
             const res = await fetch("https://localhost:7157/api/reviews/respond", {
                 method: "POST",
@@ -51,17 +54,19 @@ export function ReviewList() {
                         r.reviewId === reviewId ? { ...r, status: "Responded" } : r
                     )
                 )
-                setEditingReviewId(null)
-                setCustomResponse("")
             } else {
-                console.error("Failed to approve review")
+                console.error("❌ Failed to approve review")
             }
         } catch (err) {
-            console.error("Error sending approval", err)
+            console.error("⚠️ Error sending approval", err)
+        } finally {
+            setSubmittingId(null)
         }
     }
 
-    if (loading) return <p className="text-muted-foreground px-4">Loading reviews...</p>
+    if (loading) {
+        return <p className="text-muted-foreground px-4">Loading reviews...</p>
+    }
 
     return (
         <div className="grid gap-4 px-4">
@@ -72,68 +77,36 @@ export function ReviewList() {
                             <h3 className="font-semibold">{r.author}</h3>
                             <Badge variant={
                                 r.sentiment === "Positive" ? "default" :
-                                    r.sentiment === "Negative" ? "destructive" : "secondary"
+                                    r.sentiment === "Negative" ? "destructive" :
+                                        "secondary"
                             }>
                                 {r.sentiment}
                             </Badge>
                         </div>
 
                         <p className="text-sm text-muted-foreground">{r.comment}</p>
+                        <p className="text-sm italic">💬 Suggested: {r.suggestedResponse}</p>
 
-                        {editingReviewId === r.reviewId ? (
-                            <>
-                                <Textarea
-                                    value={customResponse}
-                                    onChange={(e) => setCustomResponse(e.target.value)}
-                                    className="text-sm"
-                                />
-                                <div className="flex gap-2 justify-end">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => {
-                                            setEditingReviewId(null)
-                                            setCustomResponse("")
-                                        }}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        onClick={() => handleApprove(r.reviewId, customResponse)}
-                                    >
-                                        Submit
-                                    </Button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-sm italic">💬 Suggested: {r.suggestedResponse}</p>
-                                <div className="flex justify-between items-center">
-                                    <p className="text-xs text-muted-foreground">Status: {r.status}</p>
-                                    {r.status !== "Responded" && (
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => {
-                                                    setEditingReviewId(r.reviewId)
-                                                    setCustomResponse(r.suggestedResponse)
-                                                }}
-                                            >
-                                                Customize
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                onClick={() => handleApprove(r.reviewId, r.suggestedResponse)}
-                                            >
-                                                Approve
-                                            </Button>
-                                        </div>
+                        <div className="flex justify-between items-center">
+                            <p className="text-xs text-muted-foreground">Status: {r.status}</p>
+
+                            {r.status !== "Responded" && (
+                                <Button
+                                    size="sm"
+                                    disabled={submittingId === r.reviewId}
+                                    onClick={() => handleApprove(r.reviewId, r.suggestedResponse)}
+                                >
+                                    {submittingId === r.reviewId ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Submitting...
+                                        </>
+                                    ) : (
+                                        "Approve"
                                     )}
-                                </div>
-                            </>
-                        )}
+                                </Button>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             ))}
