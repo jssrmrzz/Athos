@@ -30,8 +30,8 @@ export function ReviewList() {
     const [customResponse, setCustomResponse] = useState<string>("")
 
     const [searchQuery, setSearchQuery] = useState("")
-    const [sentimentFilter, setSentimentFilter] = useState("")
-    const [statusFilter, setStatusFilter] = useState("")
+    const [sentimentFilter, setSentimentFilter] = useState("all")
+    const [statusFilter, setStatusFilter] = useState("all")
 
     // 🔁 Fetch reviews from API
     const fetchReviews = async () => {
@@ -86,10 +86,10 @@ export function ReviewList() {
             r.suggestedResponse.toLowerCase().includes(searchQuery.toLowerCase())
 
         const matchesSentiment =
-            sentimentFilter === "" || r.sentiment === sentimentFilter
+            sentimentFilter === "all" || r.sentiment === sentimentFilter
 
         const matchesStatus =
-            statusFilter === "" ||
+            statusFilter === "all" ||
             (statusFilter === "Responded" && r.status === "Responded") ||
             (statusFilter === "Pending" && r.status !== "Responded")
 
@@ -107,14 +107,12 @@ export function ReviewList() {
                     className="w-full sm:w-1/3"
                 />
 
-                <Select
-                    value={sentimentFilter}
-                    onValueChange={setSentimentFilter}
-                >
-                    <SelectTrigger className="w-[160px]">
+                <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                    <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Sentiment" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
                         <SelectItem value="Positive">Positive</SelectItem>
                         <SelectItem value="Neutral">Neutral</SelectItem>
                         <SelectItem value="Negative">Negative</SelectItem>
@@ -126,9 +124,10 @@ export function ReviewList() {
                     onValueChange={setStatusFilter}
                 >
                     <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="Status" />
+                        <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
                         <SelectItem value="Pending">Pending</SelectItem>
                         <SelectItem value="Responded">Responded</SelectItem>
                     </SelectContent>
