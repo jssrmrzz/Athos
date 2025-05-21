@@ -63,6 +63,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-black;
+  }
+
+  .dark body {
+    @apply bg-gray-900 text-white;
   }
 }

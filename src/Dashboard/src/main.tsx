@@ -5,6 +5,8 @@ import { BrowserRouter } from "react-router-dom";
 
 createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
-        <App />
+        <div className="min-h-screen bg-background text-foreground antialiased transition-colors duration-300" id="root-theme">
+            <App />
+        </div>
     </BrowserRouter>
 )

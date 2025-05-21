@@ -3,9 +3,11 @@ import { ReviewList } from "./components/reviews/ReviewList";
 
 function App() {
     return (
-        <Layout>
-            <ReviewList />
-        </Layout>
+        <div className="min-h-screen bg-background text-foreground">
+            <Layout>
+                <ReviewList />
+            </Layout>
+        </div>
     );
 }
 
