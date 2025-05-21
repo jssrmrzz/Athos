@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import {
     Select,
-    SelectTrigger,
-    SelectValue,
     SelectContent,
     SelectItem,
+    SelectTrigger,
+    SelectValue
 } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
 
@@ -29,29 +29,29 @@ export function ReviewList() {
     const [editingId, setEditingId] = useState<string | null>(null)
     const [customResponse, setCustomResponse] = useState<string>("")
 
-    // 🔍 Search & Filter state
     const [searchQuery, setSearchQuery] = useState("")
     const [sentimentFilter, setSentimentFilter] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
 
-    // 🔄 Fetch reviews on mount
-    useEffect(() => {
-        async function fetchReviews() {
-            try {
-                const res = await fetch("https://localhost:7157/api/reviews")
-                const json = await res.json()
-                setReviews(json.data ?? [])
-            } catch (err) {
-                console.error("❌ Failed to fetch reviews", err)
-            } finally {
-                setLoading(false)
-            }
+    // 🔁 Fetch reviews from API
+    const fetchReviews = async () => {
+        setLoading(true)
+        try {
+            const res = await fetch("https://localhost:7157/api/reviews")
+            const json = await res.json()
+            setReviews(json.data ?? [])
+        } catch (err) {
+            console.error("❌ Failed to fetch reviews", err)
+        } finally {
+            setLoading(false)
         }
+    }
 
+    useEffect(() => {
         fetchReviews()
     }, [])
 
-    // ✅ Handle approval (or submission of edited reply)
+    // ✅ Submit response
     const handleApprove = async (reviewId: string, finalResponse: string) => {
         setSubmittingId(reviewId)
 
@@ -59,7 +59,7 @@ export function ReviewList() {
             const res = await fetch("https://localhost:7157/api/reviews/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ reviewId, finalResponse }),
+                body: JSON.stringify({ reviewId, finalResponse })
             })
 
             if (res.ok) {
@@ -79,96 +79,75 @@ export function ReviewList() {
         }
     }
 
-    // 💡 Apply all filters and search to review list
+    // 🧠 Apply filters and search
     const filteredReviews = reviews.filter(r => {
         const matchesSearch =
             r.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
             r.suggestedResponse.toLowerCase().includes(searchQuery.toLowerCase())
 
         const matchesSentiment =
-            sentimentFilter === "All" || r.sentiment === sentimentFilter
+            sentimentFilter === "" || r.sentiment === sentimentFilter
 
         const matchesStatus =
-            statusFilter === "All" ||
+            statusFilter === "" ||
             (statusFilter === "Responded" && r.status === "Responded") ||
             (statusFilter === "Pending" && r.status !== "Responded")
 
         return matchesSearch && matchesSentiment && matchesStatus
     })
 
-    if (loading) {
-        return <p className="text-muted-foreground px-4">Loading reviews...</p>
-    }
-
     return (
         <div className="grid gap-4 px-4">
+            {/* 🔎 Search + Filter Controls */}
+            <div className="flex flex-wrap gap-2 items-center justify-between">
+                <Input
+                    placeholder="Search reviews..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full sm:w-1/3"
+                />
 
-            {/* 🔍 Search and Filters */}
-            <div className="flex flex-col md:flex-row gap-4 md:items-end justify-between mb-4">
-                {/* Search input */}
-                <div className="flex-1">
-                    <label htmlFor="search" className="block text-sm font-medium text-muted-foreground mb-1">
-                        Search reviews
-                    </label>
-                    <Input
-                        id="search"
-                        type="text"
-                        placeholder="e.g. wait time, friendly, rude..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full"
-                    />
-                </div>
+                <Select
+                    value={sentimentFilter}
+                    onValueChange={setSentimentFilter}
+                >
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Sentiment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Positive">Positive</SelectItem>
+                        <SelectItem value="Neutral">Neutral</SelectItem>
+                        <SelectItem value="Negative">Negative</SelectItem>
+                    </SelectContent>
+                </Select>
 
-                {/* Sentiment dropdown */}
-                <div>
-                    <label htmlFor="sentiment" className="block text-sm font-medium text-muted-foreground mb-1">
-                        Sentiment
-                    </label>
-                    <Select
-                        value={sentimentFilter}
-                        onValueChange={setSentimentFilter}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sentiment" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All</SelectItem> {/* replace "" with "All" */}
-                            <SelectItem value="Positive">Positive</SelectItem>
-                            <SelectItem value="Neutral">Neutral</SelectItem>
-                            <SelectItem value="Negative">Negative</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                <Select
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                >
+                    <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Responded">Responded</SelectItem>
+                    </SelectContent>
+                </Select>
 
-                {/* Status dropdown */}
-                <div>
-                    <label htmlFor="status" className="block text-sm font-medium text-muted-foreground mb-1">
-                        Status
-                    </label>
-                    <Select
-                        value={statusFilter}
-                        onValueChange={setStatusFilter}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="All">All</SelectItem> {/* replace "" with "All" */}
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="Responded">Responded</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+                {/* 🔁 Refresh Button */}
+                <Button variant="outline" onClick={fetchReviews} disabled={loading}>
+                    {loading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Refreshing...
+                        </>
+                    ) : (
+                        "🔄 Refresh"
+                    )}
+                </Button>
             </div>
 
-            {filteredReviews.length === 0 && (
-                <p className="text-muted-foreground text-sm italic">
-                    No reviews match your current search or filters.
-                </p>
-            )}
-
-            {/* 📋 Review list */}
+            {/* 🗂️ Review Cards */}
             {filteredReviews.map(r => {
                 const isEditing = editingId === r.reviewId
                 const isSubmitting = submittingId === r.reviewId
@@ -178,11 +157,15 @@ export function ReviewList() {
                         <CardContent className="pt-4 space-y-2">
                             <div className="flex justify-between items-center">
                                 <h3 className="font-semibold">{r.author}</h3>
-                                <Badge variant={
-                                    r.sentiment === "Positive" ? "default" :
-                                        r.sentiment === "Negative" ? "destructive" :
-                                            "secondary"
-                                }>
+                                <Badge
+                                    variant={
+                                        r.sentiment === "Positive"
+                                            ? "default"
+                                            : r.sentiment === "Negative"
+                                                ? "destructive"
+                                                : "secondary"
+                                    }
+                                >
                                     {r.sentiment}
                                 </Badge>
                             </div>
@@ -190,7 +173,6 @@ export function ReviewList() {
                             <p className="text-sm text-muted-foreground">{r.comment}</p>
                             <p className="text-sm italic">💬 Suggested: {r.suggestedResponse}</p>
 
-                            {/* ✏️ Edit mode */}
                             {isEditing && (
                                 <div className="space-y-2">
                                     <Textarea
@@ -228,9 +210,9 @@ export function ReviewList() {
                                 </div>
                             )}
 
-                            {/* ✅ Default actions */}
                             <div className="flex justify-between items-center">
                                 <p className="text-xs text-muted-foreground">Status: {r.status}</p>
+
                                 {!isEditing && r.status !== "Responded" && (
                                     <div className="flex gap-2">
                                         <Button
@@ -246,7 +228,9 @@ export function ReviewList() {
                                         <Button
                                             size="sm"
                                             disabled={isSubmitting}
-                                            onClick={() => handleApprove(r.reviewId, r.suggestedResponse)}
+                                            onClick={() =>
+                                                handleApprove(r.reviewId, r.suggestedResponse)
+                                            }
                                         >
                                             {isSubmitting ? (
                                                 <>
