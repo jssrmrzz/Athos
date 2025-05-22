@@ -24,9 +24,17 @@ export function useApi() {
         if (!res.ok) throw new Error("Failed to submit response")
     }
 
+    // Reset endpoint
+    const resetMockData = async () => {
+        if (!useMockApi) return // Only valid in mock mode
+        const res = await fetch(`${baseUrl}/reset`, { method: "POST" })
+        if (!res.ok) throw new Error("Failed to reset mock data")
+    }
+
     return {
         getReviews,
         postResponse,
-        baseUrl // Optional: useful for debugging or logging
+        resetMockData,
+        baseUrl
     }
 }

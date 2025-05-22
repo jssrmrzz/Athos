@@ -14,6 +14,7 @@ import {
 import { Loader2 } from "lucide-react"
 import { useMockApiContext } from "@/context/MockApiContext"
 import { useApi } from "@/hooks/useApi" // API abstraction
+import { DebugPanel } from "@/components/DebugPanel" // Debug Panel
 
 type Review = {
     reviewId: string
@@ -124,7 +125,7 @@ export function ReviewList() {
                         <SelectItem value="Responded">Responded</SelectItem>
                     </SelectContent>
                 </Select>
-
+                
                 <Button variant="outline" onClick={fetchReviews} disabled={loading}>
                     {loading ? (
                         <>
@@ -135,6 +136,7 @@ export function ReviewList() {
                         "🔄 Refresh"
                     )}
                 </Button>
+                
             </div>
 
             {/* 📋 Review Cards */}
@@ -158,6 +160,9 @@ export function ReviewList() {
                                 >
                                     {r.sentiment}
                                 </Badge>
+
+                                <DebugPanel onRefresh={fetchReviews} />
+                                
                             </div>
 
                             <p className="text-sm text-muted-foreground">{r.comment}</p>
