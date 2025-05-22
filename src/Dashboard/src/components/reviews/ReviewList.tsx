@@ -12,7 +12,7 @@ import {
     SelectValue
 } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
-
+import { useMockApiContext } from "@/context/MockApiContext"
 type Review = {
     reviewId: string
     author: string
@@ -23,6 +23,7 @@ type Review = {
 }
 
 export function ReviewList() {
+    const { useMockApi } = useMockApiContext()
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
     const [submittingId, setSubmittingId] = useState<string | null>(null)
@@ -33,11 +34,15 @@ export function ReviewList() {
     const [sentimentFilter, setSentimentFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState("all")
 
-    // 🔁 Fetch reviews from API
+    const baseUrl = useMockApi
+        ? "https://localhost:7157/api/mock"
+        : "https://localhost:7157/api"
+
+    // 🔁 Fetch reviews
     const fetchReviews = async () => {
         setLoading(true)
         try {
-            const res = await fetch("https://localhost:7157/api/reviews")
+            const res = await fetch(`${baseUrl}/reviews`)
             const json = await res.json()
             setReviews(json.data ?? [])
         } catch (err) {
@@ -49,14 +54,14 @@ export function ReviewList() {
 
     useEffect(() => {
         fetchReviews()
-    }, [])
+    }, [useMockApi])
 
     // ✅ Submit response
     const handleApprove = async (reviewId: string, finalResponse: string) => {
         setSubmittingId(reviewId)
 
         try {
-            const res = await fetch("https://localhost:7157/api/reviews/respond", {
+            const res = await fetch(`${baseUrl}/respond`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ reviewId, finalResponse })
@@ -79,7 +84,7 @@ export function ReviewList() {
         }
     }
 
-    // 🧠 Apply filters and search
+    // 🧠 Filtered reviews
     const filteredReviews = reviews.filter(r => {
         const matchesSearch =
             r.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,7 +103,7 @@ export function ReviewList() {
 
     return (
         <div className="grid gap-4 px-4">
-            {/* 🔎 Search + Filter Controls */}
+            {/* 🔎 Search + Filters */}
             <div className="flex flex-wrap gap-2 items-center justify-between">
                 <Input
                     placeholder="Search reviews..."
@@ -119,10 +124,7 @@ export function ReviewList() {
                     </SelectContent>
                 </Select>
 
-                <Select
-                    value={statusFilter}
-                    onValueChange={setStatusFilter}
-                >
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[160px]">
                         <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
@@ -133,7 +135,6 @@ export function ReviewList() {
                     </SelectContent>
                 </Select>
 
-                {/* 🔁 Refresh Button */}
                 <Button variant="outline" onClick={fetchReviews} disabled={loading}>
                     {loading ? (
                         <>
