@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
 import { useMockApiContext } from "@/context/MockApiContext"
+import { useApi } from "@/hooks/useApi" // API abstraction
+
 type Review = {
     reviewId: string
     author: string
@@ -24,6 +26,7 @@ type Review = {
 
 export function ReviewList() {
     const { useMockApi } = useMockApiContext()
+    const api = useApi()
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
     const [submittingId, setSubmittingId] = useState<string | null>(null)
@@ -34,17 +37,12 @@ export function ReviewList() {
     const [sentimentFilter, setSentimentFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState("all")
 
-    const baseUrl = useMockApi
-        ? "https://localhost:7157/api/mock"
-        : "https://localhost:7157/api"
-
-    // 🔁 Fetch reviews
+    // 🔁 Fetch reviews when component mounts or mock mode changes
     const fetchReviews = async () => {
         setLoading(true)
         try {
-            const res = await fetch(`${baseUrl}/reviews`)
-            const json = await res.json()
-            setReviews(json.data ?? [])
+            const data = await api.getReviews()
+            setReviews(data)
         } catch (err) {
             console.error("❌ Failed to fetch reviews", err)
         } finally {
@@ -54,29 +52,21 @@ export function ReviewList() {
 
     useEffect(() => {
         fetchReviews()
-    }, [useMockApi])
+    }, [useMockApi]) // 👈 react to changes in mock mode
 
-    // ✅ Submit response
+    // ✅ Submit final response (mock or real)
     const handleApprove = async (reviewId: string, finalResponse: string) => {
         setSubmittingId(reviewId)
 
         try {
-            const res = await fetch(`${baseUrl}/respond`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ reviewId, finalResponse })
-            })
+            await api.postResponse(reviewId, finalResponse)
 
-            if (res.ok) {
-                setReviews(prev =>
-                    prev.map(r =>
-                        r.reviewId === reviewId ? { ...r, status: "Responded" } : r
-                    )
+            setReviews(prev =>
+                prev.map(r =>
+                    r.reviewId === reviewId ? { ...r, status: "Responded" } : r
                 )
-                setEditingId(null)
-            } else {
-                console.error("❌ Failed to submit response")
-            }
+            )
+            setEditingId(null)
         } catch (err) {
             console.error("⚠️ Error sending response", err)
         } finally {
@@ -84,7 +74,7 @@ export function ReviewList() {
         }
     }
 
-    // 🧠 Filtered reviews
+    // 🧠 Filter reviews by text, sentiment, and status
     const filteredReviews = reviews.filter(r => {
         const matchesSearch =
             r.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,7 +93,7 @@ export function ReviewList() {
 
     return (
         <div className="grid gap-4 px-4">
-            {/* 🔎 Search + Filters */}
+            {/* 🔍 Search and Filter Controls */}
             <div className="flex flex-wrap gap-2 items-center justify-between">
                 <Input
                     placeholder="Search reviews..."
@@ -147,7 +137,7 @@ export function ReviewList() {
                 </Button>
             </div>
 
-            {/* 🗂️ Review Cards */}
+            {/* 📋 Review Cards */}
             {filteredReviews.map(r => {
                 const isEditing = editingId === r.reviewId
                 const isSubmitting = submittingId === r.reviewId
