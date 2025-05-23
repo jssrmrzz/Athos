@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react"
 import { useMockApiContext } from "@/context/MockApiContext"
 import { useApi } from "@/hooks/useApi" // API abstraction
 import { DebugPanel } from "@/components/DebugPanel" // Debug Panel
+import { useToast } from "@/components/ui/use-toast"
 
 type Review = {
     reviewId: string
@@ -28,6 +29,7 @@ type Review = {
 export function ReviewList() {
     const { useMockApi } = useMockApiContext()
     const api = useApi()
+    const { toast } = useToast()
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
     const [submittingId, setSubmittingId] = useState<string | null>(null)
@@ -68,8 +70,21 @@ export function ReviewList() {
                 )
             )
             setEditingId(null)
+
+            toast(
+                <div>
+                    <p className="font-semibold">Response Submitted</p>
+                    <p className="text-sm text-muted-foreground">Your reply was saved successfully.</p>
+                </div>
+            )
         } catch (err) {
             console.error("⚠️ Error sending response", err)
+            toast(
+                <div>
+                    <p className="font-semibold text-destructive">Submission Failed</p>
+                    <p className="text-sm text-muted-foreground">We couldn't send your response. Try again.</p>
+                </div>
+            )
         } finally {
             setSubmittingId(null)
         }
