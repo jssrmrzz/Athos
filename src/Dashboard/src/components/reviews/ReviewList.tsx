@@ -16,6 +16,7 @@ import { useMockApiContext } from "@/context/MockApiContext"
 import { useApi } from "@/hooks/useApi"
 import { DebugPanel } from "@/components/DebugPanel"
 import { showSuccessToast, showErrorToast } from "@/lib/toast"
+import { EmptyState } from "@/components/EmptyState"
 
 type Review = {
     reviewId: string
@@ -250,6 +251,18 @@ export function ReviewList() {
                     </Card>
                 )
             })}
+
+            {filteredReviews.length === 0 && (
+                <EmptyState
+                    message="No reviews match your filters."
+                    actionText="Clear filters"
+                    onAction={() => {
+                        setSearchQuery("")
+                        setSentimentFilter("all")
+                        setStatusFilter("all")
+                    }}
+                />
+            )}
 
             {/* 🧪 Floating Debug Panel */}
             <DebugPanel onRefresh={fetchReviews} />
