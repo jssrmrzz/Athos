@@ -207,7 +207,12 @@ export function ReviewList() {
                             )}
 
                             <div className="flex justify-between items-center">
-                                <p className="text-xs text-muted-foreground">Status: {r.status}</p>
+                                <Badge
+                                    variant={r.status === "Responded" ? "default" : "destructive"}
+                                    className="text-xs"
+                                >
+                                    {r.status}
+                                </Badge>
 
                                 {!isEditing && r.status !== "Responded" && (
                                     <div className="flex gap-2">
