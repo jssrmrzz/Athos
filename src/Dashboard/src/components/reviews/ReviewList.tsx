@@ -9,13 +9,13 @@ import {
     SelectContent,
     SelectItem,
     SelectTrigger,
-    SelectValue
+    SelectValue,
 } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
 import { useMockApiContext } from "@/context/MockApiContext"
-import { useApi } from "@/hooks/useApi" // API abstraction
-import { DebugPanel } from "@/components/DebugPanel" // Debug Panel
-import { useToast } from "@/components/ui/use-toast"
+import { useApi } from "@/hooks/useApi"
+import { DebugPanel } from "@/components/DebugPanel"
+import { showSuccessToast, showErrorToast } from "@/lib/toast"
 
 type Review = {
     reviewId: string
@@ -29,7 +29,6 @@ type Review = {
 export function ReviewList() {
     const { useMockApi } = useMockApiContext()
     const api = useApi()
-    const { toast } = useToast()
     const [reviews, setReviews] = useState<Review[]>([])
     const [loading, setLoading] = useState(true)
     const [submittingId, setSubmittingId] = useState<string | null>(null)
@@ -40,7 +39,7 @@ export function ReviewList() {
     const [sentimentFilter, setSentimentFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState("all")
 
-    // 🔁 Fetch reviews when component mounts or mock mode changes
+    // 🔁 Fetch reviews on mount and when mock mode changes
     const fetchReviews = async () => {
         setLoading(true)
         try {
@@ -48,6 +47,7 @@ export function ReviewList() {
             setReviews(data)
         } catch (err) {
             console.error("❌ Failed to fetch reviews", err)
+            showErrorToast("Failed to Load Reviews", "Please check your network or try again.")
         } finally {
             setLoading(false)
         }
@@ -55,9 +55,9 @@ export function ReviewList() {
 
     useEffect(() => {
         fetchReviews()
-    }, [useMockApi]) // 👈 react to changes in mock mode
+    }, [useMockApi])
 
-    // ✅ Submit final response (mock or real)
+    // ✅ Submit final response
     const handleApprove = async (reviewId: string, finalResponse: string) => {
         setSubmittingId(reviewId)
 
@@ -71,26 +71,16 @@ export function ReviewList() {
             )
             setEditingId(null)
 
-            toast(
-                <div>
-                    <p className="font-semibold">Response Submitted</p>
-                    <p className="text-sm text-muted-foreground">Your reply was saved successfully.</p>
-                </div>
-            )
+            showSuccessToast("Response Submitted", "Your reply was saved successfully.")
         } catch (err) {
             console.error("⚠️ Error sending response", err)
-            toast(
-                <div>
-                    <p className="font-semibold text-destructive">Submission Failed</p>
-                    <p className="text-sm text-muted-foreground">We couldn't send your response. Try again.</p>
-                </div>
-            )
+            showErrorToast("Submission Failed", "We couldn't send your response. Try again.")
         } finally {
             setSubmittingId(null)
         }
     }
 
-    // 🧠 Filter reviews by text, sentiment, and status
+    // 🧠 Filtered reviews based on search and filters
     const filteredReviews = reviews.filter(r => {
         const matchesSearch =
             r.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,7 +99,7 @@ export function ReviewList() {
 
     return (
         <div className="grid gap-4 px-4">
-            {/* 🔍 Search and Filter Controls */}
+            {/* 🔍 Search + Filter Controls */}
             <div className="flex flex-wrap gap-2 items-center justify-between">
                 <Input
                     placeholder="Search reviews..."
@@ -140,7 +130,7 @@ export function ReviewList() {
                         <SelectItem value="Responded">Responded</SelectItem>
                     </SelectContent>
                 </Select>
-                
+
                 <Button variant="outline" onClick={fetchReviews} disabled={loading}>
                     {loading ? (
                         <>
@@ -151,10 +141,9 @@ export function ReviewList() {
                         "🔄 Refresh"
                     )}
                 </Button>
-                
             </div>
 
-            {/* 📋 Review Cards */}
+            {/* 🗂️ Review Cards */}
             {filteredReviews.map(r => {
                 const isEditing = editingId === r.reviewId
                 const isSubmitting = submittingId === r.reviewId
@@ -175,9 +164,6 @@ export function ReviewList() {
                                 >
                                     {r.sentiment}
                                 </Badge>
-
-                                <DebugPanel onRefresh={fetchReviews} />
-                                
                             </div>
 
                             <p className="text-sm text-muted-foreground">{r.comment}</p>
@@ -232,6 +218,7 @@ export function ReviewList() {
                                                 setEditingId(r.reviewId)
                                                 setCustomResponse(r.suggestedResponse)
                                             }}
+                                            disabled={isSubmitting}
                                         >
                                             Customize
                                         </Button>
@@ -258,6 +245,9 @@ export function ReviewList() {
                     </Card>
                 )
             })}
+
+            {/* 🧪 Floating Debug Panel */}
+            <DebugPanel onRefresh={fetchReviews} />
         </div>
     )
 }
