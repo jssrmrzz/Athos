@@ -7,11 +7,13 @@ export function useApi() {
         ? "https://localhost:7157/api/mock"
         : "https://localhost:7157/api"
 
-    const getReviews = async () => {
-        const res = await fetch(`${baseUrl}/reviews`)
-        if (!res.ok) throw new Error("Failed to fetch reviews")
+    const getReviews = async (page = 1, pageSize = 10) => {
+        const res = await fetch(`${baseUrl}/reviews?page=${page}&pageSize=${pageSize}`)
         const json = await res.json()
-        return json.data ?? []
+        return {
+            data: json.data ?? [],
+            total: json.total ?? 0
+        }
     }
 
     const postResponse = async (reviewId: string, finalResponse: string) => {
