@@ -39,13 +39,20 @@ export function ReviewList() {
     const [searchQuery, setSearchQuery] = useState("")
     const [sentimentFilter, setSentimentFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState("all")
+    const [page, setPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [total, setTotal] = useState(0)
+    const totalPages = Math.ceil(total / pageSize)
+    const start = (page - 1) * pageSize + 1
+    const end = Math.min(page * pageSize, total)
 
     // 🔁 Fetch reviews on mount and when mock mode changes
     const fetchReviews = async () => {
         setLoading(true)
         try {
-            const data = await api.getReviews()
+            const { data, total } = await api.getReviews(page, pageSize)
             setReviews(data)
+            setTotal(total)
         } catch (err) {
             console.error("❌ Failed to fetch reviews", err)
             showErrorToast("Failed to Load Reviews", "Please check your network or try again.")
@@ -56,7 +63,7 @@ export function ReviewList() {
 
     useEffect(() => {
         fetchReviews()
-    }, [useMockApi])
+    }, [useMockApi, page, pageSize])
 
     // ✅ Submit final response
     const handleApprove = async (reviewId: string, finalResponse: string) => {
@@ -105,11 +112,20 @@ export function ReviewList() {
                 <Input
                     placeholder="Search reviews..."
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={e => {
+                        setSearchQuery(e.target.value)
+                        setPage(1)
+                    }}
                     className="w-full sm:w-1/3"
                 />
 
-                <Select value={sentimentFilter} onValueChange={setSentimentFilter}>
+                <Select
+                    value={sentimentFilter}
+                    onValueChange={(value) => {
+                        setSentimentFilter(value)
+                        setPage(1)
+                    }}
+                >
                     <SelectTrigger className="w-[150px]">
                         <SelectValue placeholder="Sentiment" />
                     </SelectTrigger>
@@ -121,7 +137,13 @@ export function ReviewList() {
                     </SelectContent>
                 </Select>
 
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select
+                    value={statusFilter}
+                    onValueChange={(value) => {
+                        setStatusFilter(value)
+                        setPage(1)
+                    }}
+                >
                     <SelectTrigger className="w-[160px]">
                         <SelectValue placeholder="All Statuses" />
                     </SelectTrigger>
@@ -142,6 +164,21 @@ export function ReviewList() {
                         "🔄 Refresh"
                     )}
                 </Button>
+
+                <Select value={String(pageSize)} onValueChange={(v) => {
+                    setPageSize(Number(v))
+                    setPage(1) // reset to first page on size change
+                }}>
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Page size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="5">5 per page</SelectItem>
+                        <SelectItem value="10">10 per page</SelectItem>
+                        <SelectItem value="20">20 per page</SelectItem>
+                        <SelectItem value="50">50 per page</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
             {/* 🗂️ Review Cards */}
@@ -264,6 +301,39 @@ export function ReviewList() {
                 />
             )}
 
+            {/* 🔢 Pagination Controls */}
+            {filteredReviews.length > 0 && (
+                <p className="text-sm text-muted-foreground text-center mt-2">
+                    Showing {start}–{end} of {total} reviews
+                </p>
+            )}
+
+            {filteredReviews.length > 0 && (
+                <div className="flex justify-center items-center gap-4 mt-4">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page === 1 || loading}
+                        onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                    >
+                        ⬅️ Prev
+                    </Button>
+
+                    <p className="text-sm text-muted-foreground">
+                        Page {page} of {totalPages}
+                    </p>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page >= totalPages || loading}
+                        onClick={() => setPage(prev => prev + 1)}
+                    >
+                        Next ➡️
+                    </Button>
+                </div>
+            )}
+            
             {/* 🧪 Floating Debug Panel */}
             <DebugPanel onRefresh={fetchReviews} />
         </div>
