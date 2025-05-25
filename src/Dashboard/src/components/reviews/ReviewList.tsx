@@ -45,7 +45,29 @@ export function ReviewList() {
     const totalPages = Math.ceil(total / pageSize)
     const start = (page - 1) * pageSize + 1
     const end = Math.min(page * pageSize, total)
+    const [loadingSuggestions, setLoadingSuggestions] = useState<Record<string, boolean>>({})
+    const stripThink = (text: string) =>
+        text.replace(/<think>.*?<\/think>/gis, "").trim()
 
+    const handleSuggest = async (reviewId: string, author: string, comment: string) => {
+        setLoadingSuggestions(prev => ({ ...prev, [reviewId]: true }))
+        try {
+            const suggestion = await api.suggestResponse({ reviewId, author, comment })
+
+            setReviews(prev =>
+                prev.map(r =>
+                    r.reviewId === reviewId ? { ...r, suggestedResponse: suggestion } : r
+                )
+            )
+
+            showSuccessToast("AI Suggestion Ready", "A new response has been generated.")
+        } catch (err) {
+            showErrorToast("Suggestion Failed", "Unable to generate a response.")
+        } finally {
+            setLoadingSuggestions(prev => ({ ...prev, [reviewId]: false }))
+        }
+    }
+    
     // 🔁 Fetch reviews on mount and when mock mode changes
     const fetchReviews = async () => {
         setLoading(true)
@@ -205,7 +227,22 @@ export function ReviewList() {
                             </div>
 
                             <p className="text-sm text-muted-foreground">{r.comment}</p>
-                            <p className="text-sm italic">💬 Suggested: {r.suggestedResponse}</p>
+                            {(() => {
+                                const match = r.suggestedResponse.match(/<think>(.*?)<\/think>/is)
+                                const reasoning = match?.[1]?.trim()
+                                const message = r.suggestedResponse.replace(/<think>.*?<\/think>/gis, "").trim()
+
+                                return (
+                                    <div className="space-y-1">
+                                        <p className="text-sm italic">💬 Suggested: {message}</p>
+                                        {reasoning && (
+                                            <p className="text-xs text-muted-foreground italic border-l-2 pl-2 border-muted">
+                                                🧠 AI Reasoning Flow: {reasoning}
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+                            })()}
 
                             {isEditing && (
                                 <div className="space-y-2">
@@ -228,7 +265,7 @@ export function ReviewList() {
                                         </Button>
                                         <Button
                                             size="sm"
-                                            onClick={() => handleApprove(r.reviewId, customResponse)}
+                                            onClick={() => handleApprove(r.reviewId, stripThink(customResponse))}
                                             disabled={isSubmitting}
                                         >
                                             {isSubmitting ? (
@@ -255,6 +292,19 @@ export function ReviewList() {
                                 {!isEditing && r.status !== "Responded" && (
                                     <div className="flex gap-2">
                                         <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleSuggest(r.reviewId, r.author, r.comment)}
+                                            disabled={loadingSuggestions[r.reviewId] || isSubmitting}
+                                        >
+                                            {loadingSuggestions[r.reviewId] ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                "💡 Suggest"
+                                            )}
+                                        </Button>
+
+                                        <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => {
@@ -265,12 +315,13 @@ export function ReviewList() {
                                         >
                                             Customize
                                         </Button>
+
                                         <Button
                                             size="sm"
-                                            disabled={isSubmitting}
                                             onClick={() =>
-                                                handleApprove(r.reviewId, r.suggestedResponse)
+                                                handleApprove(r.reviewId, stripThink(r.suggestedResponse))
                                             }
+                                            disabled={isSubmitting}
                                         >
                                             {isSubmitting ? (
                                                 <>

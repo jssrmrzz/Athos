@@ -25,7 +25,11 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
         // GET: /api/mock/reviews
         [HttpGet("reviews")]
-        public async Task<IActionResult> GetMockReviews([FromQuery] bool simulateDelay = false, [FromQuery] bool simulateError = false)
+        public async Task<IActionResult> GetMockReviews(
+            [FromQuery] bool simulateDelay = false,
+            [FromQuery] bool simulateError = false,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             if (simulateError)
             {
@@ -34,10 +38,19 @@ namespace Athos.ReviewAutomation.Api.Controllers
 
             if (simulateDelay)
             {
-                await Task.Delay(1500); // Simulate 1.5s latency
+                await Task.Delay(1500);
             }
 
-            return Ok(new { data = MockReviews });
+            var paged = MockReviews
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new
+            {
+                data = paged,
+                total = MockReviews.Count
+            });
         }
 
         // POST: /api/mock/respond
