@@ -3,9 +3,14 @@ import { useMockApiContext } from "@/context/MockApiContext"
 export function useApi() {
     const { useMockApi } = useMockApiContext()
 
+    // 👇 Fallback to your dev machine IP for mobile devices
+    const isLocalhost = window.location.hostname === "localhost"
+    const fallbackIp = "10.0.0.22" // Replace this with your machine’s IP if it changes
+    const host = isLocalhost ? "localhost" : fallbackIp
+
     const baseUrl = useMockApi
-        ? "https://localhost:7157/api/mock"
-        : "https://localhost:7157/api"
+        ? `http://${host}:7157/api/mock`
+        : `http://${host}:7157/api`
 
     const getReviews = async (page = 1, pageSize = 10) => {
         const res = await fetch(`${baseUrl}/reviews?page=${page}&pageSize=${pageSize}`)
@@ -47,9 +52,8 @@ export function useApi() {
         return json.suggestion
     }
 
-    // Reset endpoint
     const resetMockData = async () => {
-        if (!useMockApi) return // Only valid in mock mode
+        if (!useMockApi) return
         const res = await fetch(`${baseUrl}/reset`, { method: "POST" })
         if (!res.ok) throw new Error("Failed to reset mock data")
     }
@@ -59,6 +63,6 @@ export function useApi() {
         postResponse,
         resetMockData,
         suggestResponse,
-        baseUrl
+        baseUrl,
     }
 }
