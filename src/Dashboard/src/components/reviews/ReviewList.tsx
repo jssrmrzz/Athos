@@ -130,7 +130,7 @@ export function ReviewList() {
     return (
         <div className="grid gap-4 px-4">
             {/* 🔍 Search + Filter Controls */}
-            <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:items-center sm:justify-between">
                 <Input
                     placeholder="Search reviews..."
                     value={searchQuery}
@@ -211,7 +211,7 @@ export function ReviewList() {
                 return (
                     <Card key={r.reviewId}>
                         <CardContent className="pt-4 space-y-2">
-                            <div className="flex justify-between items-center">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
                                 <h3 className="font-semibold">{r.author}</h3>
                                 <Badge
                                     variant={
@@ -226,7 +226,9 @@ export function ReviewList() {
                                 </Badge>
                             </div>
 
-                            <p className="text-sm text-muted-foreground">{r.comment}</p>
+                            <p className="text-sm sm:text-base text-muted-foreground line-clamp-3">
+                                {r.comment}
+                            </p>
                             {(() => {
                                 const match = r.suggestedResponse.match(/<think>(.*?)<\/think>/is)
                                 const reasoning = match?.[1]?.trim()
@@ -234,10 +236,13 @@ export function ReviewList() {
 
                                 return (
                                     <div className="space-y-1">
-                                        <p className="text-sm italic">💬 Suggested: {message}</p>
+                                        <p className="text-sm sm:text-base italic text-muted-foreground line-clamp-4">
+                                            💬 Suggested: {message}
+                                        </p>
+
                                         {reasoning && (
-                                            <p className="text-xs text-muted-foreground italic border-l-2 pl-2 border-muted">
-                                                🧠 AI Reasoning Flow: {reasoning}
+                                            <p className="text-xs sm:text-sm text-muted-foreground italic border-l-2 pl-3 border-muted line-clamp-5">
+                                                🧠 <span className="font-medium">AI Reasoning Flow:</span> {reasoning}
                                             </p>
                                         )}
                                     </div>
@@ -281,16 +286,16 @@ export function ReviewList() {
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-center">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                                 <Badge
                                     variant={r.status === "Responded" ? "default" : "destructive"}
-                                    className="text-xs"
+                                    className="text-xs w-fit"
                                 >
                                     {r.status}
                                 </Badge>
 
                                 {!isEditing && r.status !== "Responded" && (
-                                    <div className="flex gap-2">
+                                    <div className="flex flex-wrap gap-2">
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -303,7 +308,6 @@ export function ReviewList() {
                                                 "💡 Suggest"
                                             )}
                                         </Button>
-
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -315,12 +319,9 @@ export function ReviewList() {
                                         >
                                             Customize
                                         </Button>
-
                                         <Button
                                             size="sm"
-                                            onClick={() =>
-                                                handleApprove(r.reviewId, stripThink(r.suggestedResponse))
-                                            }
+                                            onClick={() => handleApprove(r.reviewId, r.suggestedResponse)}
                                             disabled={isSubmitting}
                                         >
                                             {isSubmitting ? (
@@ -360,7 +361,7 @@ export function ReviewList() {
             )}
 
             {filteredReviews.length > 0 && (
-                <div className="flex justify-center items-center gap-4 mt-4">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mt-4 text-center">
                     <Button
                         variant="outline"
                         size="sm"

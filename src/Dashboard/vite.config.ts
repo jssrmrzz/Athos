@@ -14,4 +14,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  server: {
+    host: true, // Allows access via local IP (e.g. 192.168.x.x)
+  },
 })
