@@ -226,6 +226,36 @@ export function ReviewList() {
                                 </Badge>
                             </div>
 
+
+
+                            <p className="text-sm text-muted-foreground">{r.comment}</p>
+                            <p className="text-sm italic">💬 Suggested: {r.suggestedResponse}</p>
+
+                            <p className="text-sm sm:text-base text-muted-foreground line-clamp-3">
+                                {r.comment}
+                            </p>
+                            {(() => {
+                                const match = r.suggestedResponse.match(/<think>(.*?)<\/think>/is)
+                                const reasoning = match?.[1]?.trim()
+                                const message = r.suggestedResponse.replace(/<think>.*?<\/think>/gis, "").trim()
+
+                                return (
+                                    <div className="space-y-1">
+                                        <p className="text-sm italic whitespace-pre-wrap break-words">
+                                            💬 Suggested: {message}
+                                        </p>
+
+                                        {reasoning && (
+                                            <p className="text-xs text-muted-foreground italic border-l-2 pl-2 border-muted whitespace-pre-wrap break-words">
+                                                🧠 <span className="font-medium">AI Reasoning Flow:</span> {reasoning}
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+                            })()}
+
+                            {/* ✏️ Edit mode */}
+
                             <p className="text-sm sm:text-base text-muted-foreground line-clamp-3">
                                 {r.comment}
                             </p>
@@ -248,6 +278,7 @@ export function ReviewList() {
                                     </div>
                                 )
                             })()}
+
 
                             {isEditing && (
                                 <div className="space-y-2">
