@@ -26,6 +26,27 @@ export function useApi() {
         if (!res.ok) throw new Error("Failed to submit response")
     }
 
+    const suggestResponse = async ({
+                                       reviewId,
+                                       author,
+                                       comment,
+                                   }: {
+        reviewId: string
+        author: string
+        comment: string
+    }) => {
+        const res = await fetch(`${baseUrl}/llm/suggest`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reviewId, author, comment }),
+        })
+
+        if (!res.ok) throw new Error("Suggestion failed")
+
+        const json = await res.json()
+        return json.suggestion
+    }
+
     // Reset endpoint
     const resetMockData = async () => {
         if (!useMockApi) return // Only valid in mock mode
@@ -37,6 +58,7 @@ export function useApi() {
         getReviews,
         postResponse,
         resetMockData,
+        suggestResponse,
         baseUrl
     }
 }
