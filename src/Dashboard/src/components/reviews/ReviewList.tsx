@@ -90,12 +90,12 @@ export function ReviewList() {
         setLoading(true)
         try {
             const { data, total } = await api.getReviews(page, pageSize)
-
             const normalized = data.map((r: any) => ({
                 ...r,
-                starRating: mapStarRating(r.starRating)
+                starRating: mapStarRating(r.starRating),
+                reviewer: r.reviewer ?? { displayName: r.displayName || r.author || "Anonymous" },
             }))
-
+            console.log("Normalized reviews:", normalized)
             setReviews(normalized)
             setTotal(total)
         } catch (err) {
@@ -147,9 +147,12 @@ export function ReviewList() {
     })
 
     return (
-        <div className="grid gap-4 px-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:items-center sm:justify-between">
                 <Input
+                    id="search-input"
+                    name="search"
+                    autoComplete="off"
                     placeholder="Search reviews..."
                     value={searchQuery}
                     onChange={e => {
@@ -233,7 +236,7 @@ export function ReviewList() {
                     <Card key={r.reviewId}>
                         <CardContent className="pt-4 space-y-2">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
-                                <h3 className="font-semibold">{r.reviewer.displayName}</h3>
+                                <h3 className="font-semibold">{r.reviewer?.displayName || "Anonymous"}</h3>
                                 <div className="flex gap-2 flex-wrap items-center">
                                     <span className={`text-xs font-medium rounded-full px-2 py-1 pointer-events-none cursor-default ${starColor}`}>
                                         ⭐ {r.starRating} Star{r.starRating > 1 ? "s" : ""}
@@ -260,6 +263,9 @@ export function ReviewList() {
                             {isEditing && (
                                 <div className="space-y-2">
                                     <Textarea
+                                        id="custom-response"
+                                        name="response"
+                                        autoComplete="off"
                                         value={customResponse}
                                         onChange={e => setCustomResponse(e.target.value)}
                                         className="text-sm"
