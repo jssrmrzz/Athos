@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using System.Threading;
 
 namespace Athos.ReviewAutomation.Api.Controllers
 {
@@ -8,22 +7,27 @@ namespace Athos.ReviewAutomation.Api.Controllers
     [Route("api/mock")]
     public class MockReviewApiController : ControllerBase
     {
-        // 🧠 In-memory store for mock reviews
+        // 🧠 In-memory mock review list
         private static readonly List<MockReview> MockReviews = new()
         {
-            new("mock-1001", "Alex Chen", "Friendly service and great haircut.", "Positive", "Thanks Alex! We appreciate the compliment!"),
-            new("mock-1002", "Jordan Singh", "Very long wait time. Disappointed.", "Negative", "We're sorry about the delay, Jordan. We'll do better next time."),
-            new("mock-1003", "Taylor Brooks", "Clean location, decent cut, but pricey.", "Neutral", "Thanks for the feedback, Taylor. We’ll review our pricing."),
-            new("mock-1004", "Nina Patel", "Stylists were kind but rushed.", "Neutral", "Thanks Nina. We’ll work on pacing ourselves better."),
-            new("mock-1005", "David Kim", "Fantastic fade and no wait!", "Positive", "Thanks David! Glad you enjoyed your visit."),
-            new("mock-1006", "Sara Lopez", "Missed my appointment slot twice.", "Negative", "Sorry for the inconvenience Sara. We'll improve our scheduling."),
-            new("mock-1007", "Chris Yang", "Best haircut I’ve had in years.", "Positive", "Appreciate it, Chris! Come back anytime."),
-            new("mock-1008", "Jamie Tran", "Good cut, but music was too loud.", "Neutral", "Thanks Jamie. We’ll be mindful of volume levels."),
-            new("mock-1009", "Ella Moore", "Receptionist was dismissive.", "Negative", "Sorry to hear that Ella. We'll coach our front desk team."),
-            new("mock-1010", "Omar Reyes", "Excellent service, great vibes!", "Positive", "Thanks Omar! Always a pleasure having you.")
+            new("rev1001", "Jane Abadayo", "FIVE", "Excellent experience! The staff was friendly and the haircut was perfect."),
+            new("rev1002", "Mark Lin", "TWO", "Waited over 30 minutes past my appointment. Not impressed."),
+            new("rev1003", "Samantha Lee", "FOUR", "Great cut and ambiance. A bit pricey though."),
+            new("rev1004", "Carlos Alvarez", "THREE", "Okay experience. Stylist was nice but seemed rushed."),
+            new("rev1005", "Tina Zhang", "FIVE", "I always leave feeling fresh and confident. Highly recommend!"),
+            new("rev1006", "Devin Nguyen", "ONE", "Terrible service. They skipped my appointment and didn’t apologize."),
+            new("rev1007", "Angela Park", "FOUR", "Friendly staff, relaxing environment. A bit of a wait though."),
+            new("rev1008", "Michael B.", "THREE", "Haircut was fine, but they overcharged me."),
+            new("rev1009", "Priya Kaur", "FIVE", "The stylist listened to exactly what I wanted. Love the result!"),
+            new("rev1010", "Ravi Patel", "TWO", "Haircut felt rushed and uneven. Wouldn’t return."),
+            new("rev1011", "Zoe Kim", "FIVE", "Clean, professional, and always on time. My go-to salon."),
+            new("rev1012", "Daniel Wu", "THREE", "Stylist was polite but didn’t follow my instructions fully."),
+            new("rev1013", "Nina Gomez", "FOUR", "Love the vibe! They even offered me coffee while I waited."),
+            new("rev1014", "Liam Johnson", "ONE", "Music was too loud and staff seemed distracted."),
+            new("rev1015", "Emily Nguyen", "FIVE", "Best barbershop in town. I always walk out smiling!")
         };
 
-        // GET: /api/mock/reviews
+        // GET /api/mock/reviews
         [HttpGet("reviews")]
         public async Task<IActionResult> GetMockReviews(
             [FromQuery] bool simulateDelay = false,
@@ -32,14 +36,10 @@ namespace Athos.ReviewAutomation.Api.Controllers
             [FromQuery] int pageSize = 10)
         {
             if (simulateError)
-            {
                 return StatusCode(500, new { error = "Simulated server error." });
-            }
 
             if (simulateDelay)
-            {
                 await Task.Delay(1500);
-            }
 
             var paged = MockReviews
                 .Skip((page - 1) * pageSize)
@@ -53,71 +53,76 @@ namespace Athos.ReviewAutomation.Api.Controllers
             });
         }
 
-        // POST: /api/mock/respond
+        // POST /api/mock/respond
         [HttpPost("respond")]
         public async Task<IActionResult> RespondToMockReview([FromBody] MockReviewResponseDto input)
         {
             if (string.IsNullOrWhiteSpace(input.ReviewId) || string.IsNullOrWhiteSpace(input.FinalResponse))
-            {
                 return BadRequest("ReviewId and FinalResponse are required.");
-            }
 
             var review = MockReviews.FirstOrDefault(r => r.ReviewId == input.ReviewId);
             if (review is null)
-            {
                 return NotFound("Review not found.");
-            }
 
-            // Simulate DB update
-            review.Status = "Responded";
             review.FinalResponse = input.FinalResponse;
+            review.Status = "Responded";
 
-            await Task.Delay(500); // Slight delay for realism
+            await Task.Delay(500);
             Console.WriteLine($"✅ Responded to {review.ReviewId}: {input.FinalResponse}");
 
             return Ok(new { message = "Mock response submitted successfully." });
         }
-        
-        // POST: /api/mock/reset
+
+        // POST /api/mock/reset
         [HttpPost("reset")]
         public IActionResult ResetMockReviews()
         {
             foreach (var review in MockReviews)
             {
-                review.Status = "Pending";
                 review.FinalResponse = "";
+                review.Status = "Pending";
             }
 
             return Ok(new { message = "Mock reviews reset to default state." });
         }
 
-        // DTO
+        // DTO used in POST /respond
         public class MockReviewResponseDto
         {
             public string ReviewId { get; set; }
             public string FinalResponse { get; set; }
         }
 
-        // Entity
+        // 🧩 Google-style Mock Review entity
         public class MockReview
         {
-            public MockReview(string id, string author, string comment, string sentiment, string suggestedResponse)
+            public MockReview(string reviewId, string displayName, string starRating, string comment)
             {
-                ReviewId = id;
-                Author = author;
+                ReviewId = reviewId;
+                Reviewer = new Reviewer { DisplayName = displayName };
+                StarRating = starRating;
                 Comment = comment;
-                Sentiment = sentiment;
-                SuggestedResponse = suggestedResponse;
+                CreateTime = DateTime.UtcNow.AddDays(-5).ToString("o");
+                UpdateTime = DateTime.UtcNow.ToString("o");
                 Status = "Pending";
+                FinalResponse = "";
+                SuggestedResponse = "";
             }
 
             public string ReviewId { get; set; }
-            public string Author { get; set; }
+            public Reviewer Reviewer { get; set; }
+            public string StarRating { get; set; } // "FIVE", "ONE", etc.
             public string Comment { get; set; }
-            public string Sentiment { get; set; }
+            public string CreateTime { get; set; }
+            public string UpdateTime { get; set; }
+            public string Status { get; set; }
+            public string FinalResponse { get; set; }
             public string SuggestedResponse { get; set; }
-            public string FinalResponse { get; set; } = "";
-            public string Status { get; set; } = "Pending";
+        }
+
+        public class Reviewer
+        {
+            public string DisplayName { get; set; }
         }
     }
 }
