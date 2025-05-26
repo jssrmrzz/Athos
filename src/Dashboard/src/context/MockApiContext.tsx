@@ -8,12 +8,13 @@ type MockApiContextType = {
 const MockApiContext = createContext<MockApiContextType | undefined>(undefined)
 
 export function MockApiProvider({ children }: { children: React.ReactNode }) {
-    const [useMockApi, setUseMockApi] = useState(() => {
-        return localStorage.getItem("useMockApi") === "true"
+    const [useMockApi, setUseMockApi] = useState<boolean>(() => {
+        const stored = localStorage.getItem("useMockApi")
+        return stored !== null ? JSON.parse(stored) : true // default to true
     })
 
     useEffect(() => {
-        localStorage.setItem("useMockApi", String(useMockApi))
+        localStorage.setItem("useMockApi", JSON.stringify(useMockApi))
     }, [useMockApi])
 
     const toggleMockApi = () => setUseMockApi(prev => !prev)

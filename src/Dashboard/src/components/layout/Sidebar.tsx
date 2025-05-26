@@ -3,16 +3,22 @@ import { Link } from "react-router-dom";
 
 export function Sidebar() {
     return (
-        <aside className="w-64 h-screen bg-gray-100 border-r flex flex-col p-4">
-            <h1 className="text-xl font-bold mb-6">Athos</h1>
-            <nav className="flex flex-col gap-4">
-                <Link to="/" className="flex items-center gap-2 text-gray-700 hover:text-blue-600">
+        <aside className="min-w-[10rem] max-w-[12rem] bg-gray-100 border-r p-4 flex flex-col">
+            <h1 className="text-xl font-bold mb-6 text-gray-800">Athos</h1>
+            <nav className="space-y-4">
+                <Link
+                    to="/"
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                     <Home className="h-5 w-5" />
-                    Dashboard
+                    <span className="text-sm font-medium">Dashboard</span>
                 </Link>
-                <Link to="/reviews" className="flex items-center gap-2 text-gray-700 hover:text-blue-600">
+                <Link
+                    to="/reviews"
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
                     <MessageCircle className="h-5 w-5" />
-                    Reviews
+                    <span className="text-sm font-medium">Reviews</span>
                 </Link>
             </nav>
         </aside>
