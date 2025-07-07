@@ -16,17 +16,25 @@ namespace Athos.ReviewAutomation.Infrastructure.Repositories
             _db = db;
         }
 
+        public List<DbReview> GetAllReviews(int businessId)
+        {
+            return _db.Reviews.Where(r => r.BusinessId == businessId).ToList();
+        }
+        
         public List<DbReview> GetAllReviews()
         {
             return _db.Reviews.ToList();
         }
         
-        public void SeedReviewsFromJsonIfEmpty()
+        public void SeedReviewsFromJsonIfEmpty(int? businessId = null)
         {
             var path = Path.Combine(AppContext.BaseDirectory, "mockGoogleReviews.json");
 
-
-            if (_db.Reviews.Any()) return;
+            // If businessId is provided, check if that business has reviews
+            if (businessId.HasValue && _db.Reviews.Any(r => r.BusinessId == businessId.Value)) return;
+            
+            // If no businessId provided, check if any reviews exist
+            if (!businessId.HasValue && _db.Reviews.Any()) return;
 
             if (!File.Exists(path))
             {
@@ -46,9 +54,26 @@ namespace Athos.ReviewAutomation.Infrastructure.Repositories
                 return;
             }
 
+            // If businessId is provided, assign all reviews to that business
+            if (businessId.HasValue)
+            {
+                foreach (var review in reviews)
+                {
+                    review.BusinessId = businessId.Value;
+                }
+            }
+            else
+            {
+                // For migration: assign to default business (ID 1) or create one
+                foreach (var review in reviews)
+                {
+                    review.BusinessId = 1; // Default business for migration
+                }
+            }
+
             _db.Reviews.AddRange(reviews);
             _db.SaveChanges();
-            Console.WriteLine($"✅ Seeded {reviews.Count} reviews.");
+            Console.WriteLine($"✅ Seeded {reviews.Count} reviews for business {businessId ?? 1}.");
         }
 
 
@@ -62,17 +87,28 @@ namespace Athos.ReviewAutomation.Infrastructure.Repositories
             _db.Reviews.AddRange(reviews);
         }
         
-        public void AddReviewsIfNotExists(List<DbReview> reviews)
+        public void AddReviewsIfNotExists(List<DbReview> reviews, int businessId)
         {
             foreach (var review in reviews)
             {
-                if (!_db.Reviews.Any(r => r.ReviewId == review.ReviewId))
+                if (!_db.Reviews.Any(r => r.ReviewId == review.ReviewId && r.BusinessId == businessId))
                 {
+                    review.BusinessId = businessId;
                     _db.Reviews.Add(review);
                 }
             }
 
             _db.SaveChanges();
+        }
+
+        public DbReview? GetReview(string reviewId, int businessId)
+        {
+            return _db.Reviews.FirstOrDefault(r => r.ReviewId == reviewId && r.BusinessId == businessId);
+        }
+
+        public void UpdateReview(DbReview review)
+        {
+            _db.Reviews.Update(review);
         }
 
 

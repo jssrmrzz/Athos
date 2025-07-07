@@ -11,9 +11,9 @@ namespace Athos.ReviewAutomation.Application.UseCases.Reviews
             _pollingService = pollingService;
         }
 
-        public async Task<List<DbReview>> Execute(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
+        public async Task<List<DbReview>> Execute(int businessId, string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
         {
-            return await _pollingService.GetReviews(sentiment, isApproved, sortBy, sortDirection);
+            return await _pollingService.GetReviews(businessId, sentiment, isApproved, sortBy, sortDirection);
         }
     }
 }
