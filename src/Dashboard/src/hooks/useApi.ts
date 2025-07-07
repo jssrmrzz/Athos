@@ -9,8 +9,8 @@ export function useApi() {
     const host = isLocalhost ? "localhost" : fallbackIp
 
     const baseUrl = useMockApi
-        ? `http://${host}:7157/api/mock`
-        : `http://${host}:7157/api`
+        ? `https://${host}:7157/api/mock`
+        : `https://${host}:7157/api`
 
     const getReviews = async (page = 1, pageSize = 10) => {
         const res = await fetch(`${baseUrl}/reviews?page=${page}&pageSize=${pageSize}`)
