@@ -29,6 +29,8 @@ namespace Athos.ReviewAutomation.Api.Extensions
 
             // Core infrastructure services and repositories
             services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IBusinessRepository, BusinessRepository>();
+            services.AddScoped<IBusinessContextService, BusinessContextService>();
             services.AddScoped<NotificationService>();
             services.AddScoped<AutoReplyService>();
             services.AddScoped<SentimentService>();
@@ -36,6 +38,9 @@ namespace Athos.ReviewAutomation.Api.Extensions
             services.AddScoped<IGoogleReviewIngestionService, GoogleReviewIngestionService>();
             services.AddScoped<IReviewPollingService, ReviewPollingService>();
             services.AddScoped<GoogleReviewClient>();
+            
+            // HTTP context for business context service
+            services.AddHttpContextAccessor();
 
             // Register HTTP clients with retry policy
             services.AddHttpClient("OpenAI", client =>

@@ -6,6 +6,10 @@ namespace Athos.ReviewAutomation.Core.Entities
 {
     [Key]
     public string? ReviewId { get; set; }
+    
+    [Required]
+    public int BusinessId { get; set; }
+    
     public string? Author { get; set; }
     public int Rating { get; set; }
     public string? Comment { get; set; }
@@ -22,6 +26,9 @@ namespace Athos.ReviewAutomation.Core.Entities
     public DateTime? ApprovedAt { get; set; }
     
     public DateTime? SubmittedAt { get; set; }
+    
+    // Navigation properties
+    public Business Business { get; set; } = null!;
 
 
 
