@@ -22,12 +22,12 @@ public class ReviewPollingService : IReviewPollingService
         _llmClient = llmClient;
 
         // Seed mock reviews on first run if DB is empty
-        _repo.SeedReviewsFromJsonIfEmpty();
+        // Seeding will be handled per business in the business creation flow
     }
 
-    public async Task<List<DbReview>> GetReviews(string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
+    public async Task<List<DbReview>> GetReviews(int businessId, string? sentiment, bool? isApproved, string? sortBy, string? sortDirection)
     {
-        var reviews = _repo.GetAllReviews().AsQueryable();
+        var reviews = _repo.GetAllReviews(businessId).AsQueryable();
 
         // Optional filters
         if (!string.IsNullOrWhiteSpace(sentiment))
@@ -95,7 +95,8 @@ public class ReviewPollingService : IReviewPollingService
             IsApproved = r.ReviewReply != null
         }).ToList();
 
-        _repo.AddReviewsIfNotExists(dbReviews);
+        // This method needs to be updated to accept businessId parameter
+        // _repo.AddReviewsIfNotExists(dbReviews, businessId);
     }
 
     // Converts Google enum star rating strings to integer

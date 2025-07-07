@@ -1,4 +1,5 @@
 using Athos.ReviewAutomation.Api.Extensions;
+using Athos.ReviewAutomation.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,13 @@ if (app.Environment.IsDevelopment())
 
 // ✅ Use CORS middleware before routing
 app.UseCors("AllowFrontend");
+
+// Authentication middleware (when implemented)
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Business context middleware for multi-tenant support
+app.UseMiddleware<BusinessContextMiddleware>();
 
 app.UseHttpsRedirection();
 app.MapControllers();

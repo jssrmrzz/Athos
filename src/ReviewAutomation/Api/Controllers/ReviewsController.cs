@@ -2,22 +2,27 @@ using Athos.ReviewAutomation.Core.Interfaces;
 using Athos.ReviewAutomation.Application.DTOs.Reviews;
 using Microsoft.AspNetCore.Mvc;
 using Athos.ReviewAutomation.Application.UseCases.Reviews;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Athos.ReviewAutomation.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ReviewsController : ControllerBase
     {
         private readonly IGetReviewsUseCase _getReviews;
         private readonly IApproveReviewUseCase _approveReview;
+        private readonly IBusinessContextService _businessContext;
 
         public ReviewsController(
             IGetReviewsUseCase getReviews,
-            IApproveReviewUseCase approveReview)
+            IApproveReviewUseCase approveReview,
+            IBusinessContextService businessContext)
         {
             _getReviews = getReviews;
             _approveReview = approveReview;
+            _businessContext = businessContext;
         }
 
         // ✅ GET: Fetch paginated, sorted, filtered reviews
@@ -30,6 +35,10 @@ namespace Athos.ReviewAutomation.Api.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
+            var businessId = _businessContext.GetCurrentBusinessId();
+            if (!businessId.HasValue)
+                return BadRequest("❌ Business context not found");
+
             if (page < 1 || pageSize < 1)
                 return BadRequest("❌ 'page' and 'pageSize' must be positive integers.");
 
@@ -49,7 +58,7 @@ namespace Athos.ReviewAutomation.Api.Controllers
             }
 
             // 🧠 Fetch and project
-            var allReviews = await _getReviews.Execute(sentiment, isApproved, sortBy, sortDirection);
+            var allReviews = await _getReviews.Execute(businessId.Value, sentiment, isApproved, sortBy, sortDirection);
             var totalCount = allReviews.Count;
 
             var pagedReviews = allReviews
