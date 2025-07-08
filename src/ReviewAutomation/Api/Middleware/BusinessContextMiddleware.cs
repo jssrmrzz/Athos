@@ -19,8 +19,27 @@ namespace Athos.ReviewAutomation.Api.Middleware
             // Skip middleware for health checks and auth endpoints
             if (context.Request.Path.StartsWithSegments("/api/health") ||
                 context.Request.Path.StartsWithSegments("/api/auth") ||
-                context.Request.Path.StartsWithSegments("/swagger") ||
-                !context.User.Identity?.IsAuthenticated == true)
+                context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                await _next(context);
+                return;
+            }
+
+            // For OAuth endpoints, allow business context from headers even without authentication
+            if (context.Request.Path.StartsWithSegments("/api/oauth"))
+            {
+                var businessIdFromHeader = context.Request.Headers["X-Business-Id"].FirstOrDefault();
+                if (!string.IsNullOrEmpty(businessIdFromHeader) && int.TryParse(businessIdFromHeader, out var businessId))
+                {
+                    // Set business context for OAuth endpoints
+                    businessContextService.SetBusinessContext(businessId, 1, "Owner"); // Mock user for OAuth
+                }
+                await _next(context);
+                return;
+            }
+
+            // Skip if not authenticated for other endpoints
+            if (!context.User.Identity?.IsAuthenticated == true)
             {
                 await _next(context);
                 return;

@@ -17,5 +17,9 @@ namespace Athos.ReviewAutomation.Core.Interfaces
         Task RemoveUserFromBusinessAsync(int businessId, int userId);
         Task<List<BusinessUser>> GetBusinessMembersAsync(int businessId);
         Task SaveChangesAsync();
+        
+        // OAuth token methods
+        Task<BusinessOAuthToken?> GetOAuthTokenAsync(int businessId, string provider = "Google");
+        Task<bool> HasValidOAuthTokenAsync(int businessId, string provider = "Google");
     }
 }
