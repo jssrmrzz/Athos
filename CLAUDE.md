@@ -97,6 +97,45 @@ cd src/Dashboard && npm run build
 cd src/Dashboard && npm run lint
 ```
 
+## Google OAuth Configuration
+
+The application now supports Google My Business OAuth integration for automated review sync:
+
+### Configuration Setup
+1. **Google Cloud Console**:
+   - Create or use existing Google Cloud project
+   - Enable Google My Business API
+   - Create OAuth 2.0 credentials (Web Application)
+   - Set authorized redirect URI: `http://localhost:7157/auth/google/callback`
+
+2. **Update appsettings.json**:
+   ```json
+   "GoogleOAuth": {
+     "ClientId": "your-google-client-id",
+     "ClientSecret": "your-google-client-secret",
+     "RedirectUri": "http://localhost:7157/auth/google/callback",
+     "Scopes": [
+       "https://www.googleapis.com/auth/business.manage",
+       "https://www.googleapis.com/auth/business.reviews",
+       "https://www.googleapis.com/auth/business.profile"
+     ]
+   }
+   ```
+
+### OAuth Flow
+1. **Authorization**: Business owner clicks "Connect Google My Business"
+2. **Redirect**: User redirected to Google OAuth consent screen
+3. **Callback**: Google redirects back with authorization code
+4. **Token Exchange**: Backend exchanges code for access/refresh tokens
+5. **Token Storage**: Tokens stored with business-level scoping
+6. **API Access**: Authenticated calls to Google My Business API
+
+### Features
+- **Multi-Tenant**: Each business has separate OAuth tokens
+- **Auto-Refresh**: Expired tokens automatically refreshed
+- **Fallback**: Graceful degradation to mock API if OAuth fails
+- **Status Monitoring**: Real-time connection status in settings UI
+
 ## API Endpoints
 
 The backend runs on `http://localhost:7157` (or `http://0.0.0.0:7157` for mobile access):
@@ -117,6 +156,13 @@ The backend runs on `http://localhost:7157` (or `http://0.0.0.0:7157` for mobile
 - `POST /api/reviews/import-google` - Import reviews from Google API
 - `POST /api/llm/suggest` - Generate AI response suggestions
 
+### Google OAuth Integration
+- `GET /api/oauth/google/authorize` - Generate OAuth authorization URL
+- `GET /api/oauth/google/callback` - Handle OAuth callback with code
+- `POST /api/oauth/google/refresh` - Refresh expired OAuth tokens
+- `POST /api/oauth/google/revoke` - Revoke OAuth tokens
+- `GET /api/oauth/google/status` - Get OAuth connection status
+
 ### System
 - `GET /api/health` - Health check endpoint
 
@@ -127,8 +173,14 @@ The React app includes:
 - **Mobile Support**: Automatic IP detection for mobile device access (fallback to `10.0.0.22`)
 - **Dark Mode**: Theme switching capability
 - **Toast Notifications**: User feedback system
+
 - **Business Navigation**: Interactive business management dropdown with routing
 - **React Router**: Complete routing structure for business management pages
+
+- **Navigation**: React Router with business owner dropdown menu
+- **Business Settings**: Complete OAuth management interface
+- **Real-time Status**: Live OAuth connection monitoring
+
 
 ## Database
 
@@ -220,11 +272,20 @@ src/
 - **Row-Level Security**: Database-level tenant isolation
 - **Audit Trail**: User actions tracked per business
 
+
 ### Future Implementation Notes
 - **Google OAuth**: Infrastructure ready for Google Business Profile integration
 - **Real Google API**: Switch from mock to actual Google My Business API
 - **Analytics**: Per-business usage tracking and insights
 - **Billing**: Subscription management and payment processing
+
+### Implementation Status
+- **Google OAuth**: ✅ COMPLETED - Full multi-tenant OAuth integration implemented
+- **Frontend Updates**: ✅ COMPLETED - Business settings UI and navigation implemented
+- **Real Google API**: ✅ READY - OAuth authentication ready for live Google My Business API
+- **Analytics**: Per-business usage tracking and insights (future)
+- **Billing**: Subscription management and payment processing (future)
+
 
 ## Mobile Development
 
@@ -244,6 +305,7 @@ The application is configured for mobile testing:
 - **Middleware**: Created BusinessContextMiddleware for tenant isolation
 - **Migration**: Successfully created AddMultiTenantSupport migration
 
+
 ### Business Navigation Enhancement (2025-07-08)
 - **Frontend**: Fixed non-functional "Business Owner" button in Dashboard
 - **Components**: Created BusinessDropdown with interactive navigation menu
@@ -258,3 +320,30 @@ The application is configured for mobile testing:
 - Updated ReviewsController and repositories for business scoping
 - Added BusinessController for complete business management
 - Enhanced dependency injection with new services
+
+### Google OAuth Integration (2025-07-08)
+- **OAuth Infrastructure**: Complete multi-tenant OAuth 2.0 implementation
+- **Backend Services**: GoogleOAuthService with full token lifecycle management
+- **API Endpoints**: `/api/oauth/google/*` endpoints for auth flow
+- **Frontend Integration**: Business settings UI with OAuth management
+- **Navigation**: Added React Router with dropdown menu navigation
+- **Security**: Business-scoped OAuth tokens with automatic refresh
+- **Error Handling**: Comprehensive error handling and user feedback
+
+### Key Files Added/Modified
+**Backend (.NET 6)**:
+- `IOAuthTokenRepository` and `OAuthTokenRepository` - Token management
+- `IGoogleOAuthService` and `GoogleOAuthService` - OAuth flow implementation
+- `OAuthController` - OAuth API endpoints
+- `AuthenticatedGoogleApiClient` - OAuth-enabled Google API client
+- `BusinessContextMiddleware` - Enhanced OAuth endpoint handling
+
+**Frontend (React + TypeScript)**:
+- `GoogleOAuthButton` - OAuth connection component
+- `useGoogleOAuth` - OAuth status management hook
+- `BusinessSettingsPage` - Complete settings UI with OAuth integration
+- `dropdown-menu.tsx` - Business owner dropdown navigation
+- `tabs.tsx` - Settings page tab navigation
+- Enhanced `App.tsx` with React Router
+- Updated `Topbar.tsx` with navigation dropdown
+
