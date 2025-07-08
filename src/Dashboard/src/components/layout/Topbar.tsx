@@ -1,7 +1,11 @@
 import { Bell, UserCircle, Settings, User, LogOut } from "lucide-react"
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle"
+
+import { BusinessDropdown } from "@/components/business/BusinessDropdown"
+
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { useNavigate } from "react-router-dom"
+
 
 export function Topbar() {
     const navigate = useNavigate();
@@ -36,6 +40,12 @@ export function Topbar() {
                     <Bell className="h-5 w-5" />
                 </button>
 
+
+                <div className="flex items-center gap-2">
+                    <UserCircle className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+                    <BusinessDropdown />
+                </div>
+
                 <DropdownMenu 
                     trigger={
                         <div className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-md transition-colors">
@@ -66,6 +76,7 @@ export function Topbar() {
                         </div>
                     </DropdownMenuItem>
                 </DropdownMenu>
+
             </div>
         </header>
     )
