@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Settings, Users, Building } from "lucide-react";
+import { ChevronDown, Settings, Users, Building, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BusinessDropdownProps {
     businessName?: string;
@@ -13,6 +14,7 @@ export function BusinessDropdown({
 }: BusinessDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
+    const { signOut } = useAuth();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -29,6 +31,11 @@ export function BusinessDropdown({
     const handleMenuClick = (path: string) => {
         navigate(path);
         setIsOpen(false);
+    };
+
+    const handleSignOutClick = async () => {
+        setIsOpen(false);
+        await signOut();
     };
 
     return (
@@ -75,6 +82,16 @@ export function BusinessDropdown({
                         >
                             <Building className="h-4 w-4" />
                             Business Profile
+                        </button>
+                        
+                        <div className="border-t border-gray-200 dark:border-zinc-700 mt-1"></div>
+                        
+                        <button
+                            onClick={handleSignOutClick}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                        >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
                         </button>
                     </div>
                 </div>
