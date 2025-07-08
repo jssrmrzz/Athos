@@ -1,3 +1,13 @@
+
+ _______  _______  __   __  _______  _______ 
+|   _   ||       ||  | |  ||       ||       |
+|  |_|  ||_     _||  |_|  ||   _   ||  _____|
+|       |  |   |  |       ||  | |  || |_____ 
+|       |  |   |  |       ||  |_|  ||_____  |
+|   _   |  |   |  |   _   ||       | _____| |
+|__| |__|  |___|  |__| |__||_______||_______|
+
+
 🧠 ATHOS – AI-Powered Review Response Automation
 
 ATHOS is a full-stack, production-ready SaaS dashboard designed to help small businesses automate responses to customer reviews across platforms like Google. It uses AI (local or cloud LLMs) to generate thoughtful replies, notify businesses of negative reviews, and streamline reputation management.
