@@ -8,16 +8,24 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
     {
         private readonly GoogleReviewClient _client;
         private readonly IReviewRepository _repo;
+        private readonly IBusinessContextService _businessContextService;
 
-        public GoogleReviewIngestionService(GoogleReviewClient client, IReviewRepository repo)
+        public GoogleReviewIngestionService(GoogleReviewClient client, IReviewRepository repo, IBusinessContextService businessContextService)
         {
             _client = client;
             _repo = repo;
+            _businessContextService = businessContextService;
         }
 
         public async Task<int> FetchAndSaveReviewsAsync()
         {
-            var newReviews = await _client.FetchReviewsAsync();
+            var businessId = _businessContextService.GetCurrentBusinessId();
+            if (businessId == null)
+            {
+                throw new InvalidOperationException("Business context is required for review ingestion");
+            }
+
+            var newReviews = await _client.FetchReviewsForBusinessAsync(businessId.Value);
 
             var existingIds = _repo.GetAllReviews().Select(r => r.ReviewId).ToHashSet();
 
@@ -44,7 +52,7 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                 _repo.SaveChanges();
             }
 
-            return toInsert.Count;
+            return toInsert.Count();
         }
         
         private int StarRatingToInt(string? starRating)
