@@ -1,9 +1,11 @@
+import { Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
-import { ReviewList } from "./components/reviews/ReviewList";
 import { MockApiProvider } from "./context/MockApiContext";
 import { MockModeToggle } from "./components/MockModeToggle";
 import { MockModeBanner } from "./components/MockModeBanner"
 import { Toaster } from "@/components/ui/toaster"
+import { BusinessSettingsPage } from "./pages/BusinessSettingsPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
     return (
@@ -16,7 +18,10 @@ function App() {
                     <MockModeToggle />
                 </div>
                 <Layout>
-                    <ReviewList />
+                    <Routes>
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/settings" element={<BusinessSettingsPage businessId="1" />} />
+                    </Routes>
                 </Layout>
             </div>
         </MockApiProvider>

@@ -8,11 +8,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Athos.ReviewAutomation.Core.csproj" />
     <ProjectReference Include="..\Infrastructure\Athos.ReviewAutomation.Infrastructure.csproj" />
-    <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj"/>
-    <ProjectReference Include="..\Application\Athos.ReviewAutomation.Application.csproj"/>
+    <ProjectReference Include="..\Models\Athos.ReviewAutomation.Models.csproj" />
+    <ProjectReference Include="..\Application\Athos.ReviewAutomation.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Apis.MyBusinessAccountManagement.v1" Version="1.70.0.3818" />
+    <PackageReference Include="Google.Apis.MyBusinessBusinessInformation.v1" Version="1.70.0.3821" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.4" />
