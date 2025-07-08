@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import { MockApiProvider } from "./context/MockApiContext";
 import { MockModeToggle } from "./components/MockModeToggle";
@@ -10,22 +10,20 @@ import DashboardPage from "./pages/DashboardPage";
 function App() {
     return (
         <MockApiProvider>
-            <Router>
-                <MockModeBanner />
-                <Toaster />
+            <MockModeBanner />
+            <Toaster />
 
-                <div className="min-h-screen bg-background text-foreground">
-                    <div className="p-4">
-                        <MockModeToggle />
-                    </div>
-                    <Layout>
-                        <Routes>
-                            <Route path="/" element={<DashboardPage />} />
-                            <Route path="/settings" element={<BusinessSettingsPage businessId="1" />} />
-                        </Routes>
-                    </Layout>
+            <div className="min-h-screen bg-background text-foreground">
+                <div className="p-4">
+                    <MockModeToggle />
                 </div>
-            </Router>
+                <Layout>
+                    <Routes>
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/settings" element={<BusinessSettingsPage businessId="1" />} />
+                    </Routes>
+                </Layout>
+            </div>
         </MockApiProvider>
     );
 }
