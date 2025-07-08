@@ -30,6 +30,8 @@ namespace Athos.ReviewAutomation.Api.Extensions
             // Core infrastructure services and repositories
             services.AddScoped<IReviewRepository, ReviewRepository>();
             services.AddScoped<IBusinessRepository, BusinessRepository>();
+            services.AddScoped<IOAuthTokenRepository, OAuthTokenRepository>();
+            services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
             services.AddScoped<IBusinessContextService, BusinessContextService>();
             services.AddScoped<NotificationService>();
             services.AddScoped<AutoReplyService>();
@@ -38,6 +40,7 @@ namespace Athos.ReviewAutomation.Api.Extensions
             services.AddScoped<IGoogleReviewIngestionService, GoogleReviewIngestionService>();
             services.AddScoped<IReviewPollingService, ReviewPollingService>();
             services.AddScoped<GoogleReviewClient>();
+            services.AddScoped<AuthenticatedGoogleApiClient>();
             
             // HTTP context for business context service
             services.AddHttpContextAccessor();

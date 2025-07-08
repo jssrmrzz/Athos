@@ -23,6 +23,29 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Configure Google OAuth authentication
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/auth/google";
+        options.LogoutPath = "/auth/logout";
+        options.AccessDeniedPath = "/auth/access-denied";
+    })
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["GoogleOAuth:ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
+        googleOptions.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
+        googleOptions.CallbackPath = "/auth/google/callback";
+        
+        // Add Google My Business API scopes
+        googleOptions.Scope.Add("https://www.googleapis.com/auth/business.manage");
+        googleOptions.Scope.Add("https://www.googleapis.com/auth/business.reviews");
+        googleOptions.Scope.Add("https://www.googleapis.com/auth/business.profile");
+        
+        // Save tokens to access Google APIs
+        googleOptions.SaveTokens = true;
+    });
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
