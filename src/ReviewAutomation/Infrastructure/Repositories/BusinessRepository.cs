@@ -133,5 +133,17 @@ namespace Athos.ReviewAutomation.Infrastructure.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        
+        public async Task<BusinessOAuthToken?> GetOAuthTokenAsync(int businessId, string provider = "Google")
+        {
+            return await _context.BusinessOAuthTokens
+                .FirstOrDefaultAsync(t => t.BusinessId == businessId && t.Provider == provider);
+        }
+
+        public async Task<bool> HasValidOAuthTokenAsync(int businessId, string provider = "Google")
+        {
+            return await _context.BusinessOAuthTokens
+                .AnyAsync(t => t.BusinessId == businessId && t.Provider == provider && !t.IsRevoked && t.ExpiresAt > DateTime.UtcNow);
+        }
     }
 }
