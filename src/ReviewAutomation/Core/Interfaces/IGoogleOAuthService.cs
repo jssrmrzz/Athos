@@ -11,5 +11,6 @@ namespace Athos.ReviewAutomation.Core.Interfaces
         Task<bool> IsTokenValidAsync(int businessId);
         Task<BusinessOAuthToken?> GetTokenAsync(int businessId);
         Task<string?> GetValidAccessTokenAsync(int businessId);
+        Task<GoogleUserProfile?> GetUserProfileAsync(int businessId);
     }
 }

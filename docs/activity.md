@@ -187,6 +187,53 @@ Notes: [Any important observations]
   - UI now provides cleaner, more intuitive user experience
   - Ready for backend authentication endpoint implementation
 
+### 2025-07-09
+
+**OAuth Configuration Fix - Protocol & Route Consistency**
+- **Time:** 10:00 AM - 11:30 AM
+- **Action:** Debugged and fixed ERR_EMPTY_RESPONSE errors in Google OAuth integration
+- **Files Modified:**
+  - **Frontend Protocol Fix:**
+    - `src/Dashboard/src/hooks/useApi.ts` (updated HTTP to HTTPS protocol)
+  - **Backend Configuration:**
+    - `src/ReviewAutomation/Api/appsettings.json` (corrected redirect URI consistency)
+    - `src/ReviewAutomation/Api/Controllers/OAuthController.cs` (enhanced error logging)
+- **Changes Made:**
+  - **Root Cause Analysis:** Identified HTTP/HTTPS protocol mismatch between frontend and backend
+  - **Frontend Fix:** Updated `useApi.ts` to use HTTPS protocol matching backend server
+  - **OAuth Route Consistency:** Ensured appsettings.json, Google Cloud Console, and controller routes all use consistent paths
+  - **Enhanced Logging:** Added comprehensive logging to OAuth authorize endpoint for better debugging
+  - **Configuration Validation:** Verified all OAuth components use `https://localhost:7157/api/oauth/google/callback`
+- **Notes:**
+  - Successfully resolved ERR_EMPTY_RESPONSE issue caused by protocol mismatch
+  - OAuth configuration now consistent across all system components
+  - Enhanced error visibility for future OAuth troubleshooting
+  - System ready for end-to-end OAuth testing with Google authorization
+  - Mock API mode initially masked the real API configuration issues
+
+### 2025-07-10
+
+**Unified Sign Out Implementation - Authentication Experience Fix**
+- **Time:** 2:00 PM - 3:30 PM
+- **Action:** Fixed non-working Sign Out button by unifying authentication experience
+- **Files Modified:**
+  - **Frontend Authentication Logic:**
+    - `src/Dashboard/src/hooks/useAuth.ts` (updated to use OAuth revoke endpoint)
+    - `src/Dashboard/src/components/business/BusinessDropdown.tsx` (added loading states, toast notifications)
+- **Changes Made:**
+  - **Problem Resolution:** Sign Out button was calling ASP.NET Core logout but app uses OAuth token-based authentication
+  - **Unified Approach:** Made Sign Out call the same OAuth revoke endpoint as working Disconnect feature
+  - **Enhanced UX:** Added loading states with spinning icon and "Signing Out..." text
+  - **User Feedback:** Integrated toast notifications for success, warning, and error states
+  - **Consistent Behavior:** Sign Out now properly revokes Google OAuth tokens and clears user session
+  - **Error Handling:** Graceful fallback that always clears local data even if server call fails
+- **Notes:**
+  - Successfully resolved user confusion between "sign out" and "disconnect" functionality
+  - Established single authentication concept: Connected = Authenticated
+  - Both frontend and backend builds pass successfully
+  - Sign Out now provides same robust experience as Business Settings disconnect
+  - Authentication flow is now intuitive and consistent across the application
+
 ---
 
 ## Template for New Entries
