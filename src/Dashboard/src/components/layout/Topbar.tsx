@@ -1,4 +1,4 @@
-import { Bell, UserCircle } from "lucide-react"
+import { Bell } from "lucide-react"
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle"
 
 import { BusinessDropdown } from "@/components/business/BusinessDropdown"
@@ -23,10 +23,7 @@ export function Topbar() {
                 </button>
 
 
-                <div className="flex items-center gap-2">
-                    <UserCircle className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-                    <BusinessDropdown />
-                </div>
+                <BusinessDropdown />
 
             </div>
         </header>
