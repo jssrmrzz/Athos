@@ -1,32 +1,61 @@
 import { useNavigate } from "react-router-dom";
+import { useApi } from "./useApi";
+import { useOAuthUser } from "./useOAuthUser";
 
 export function useAuth() {
     const navigate = useNavigate();
+    const { baseUrl } = useApi();
+    const { signOut: clearUserProfile } = useOAuthUser();
 
     const signOut = async () => {
         try {
-            // Call the backend logout endpoint
-            const response = await fetch('/api/auth/logout', {
+            // Get current business ID (hardcoded for now, should come from context in future)
+            const businessId = "1";
+            
+            // Call the OAuth revoke endpoint (same as Disconnect feature)
+            const response = await fetch(`${baseUrl}/oauth/google/revoke`, {
                 method: 'POST',
-                credentials: 'include', // Include cookies
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Business-Id': businessId,
+                },
             });
 
             if (response.ok) {
-                // Clear any local storage or session storage if needed
+                console.log('Successfully signed out and disconnected from Google');
+                
+                // Clear user profile from context (same as Disconnect does)
+                clearUserProfile();
+                
+                // Clear any local storage or session storage
                 localStorage.clear();
                 sessionStorage.clear();
                 
-                // Redirect to login page or home page
-                navigate('/login', { replace: true });
+                // Navigate to home page
+                navigate('/', { replace: true });
+                
+                return { success: true };
             } else {
                 console.error('Sign out failed');
+                
+                // Still clear local data and redirect even if server revoke failed
+                clearUserProfile();
+                localStorage.clear();
+                sessionStorage.clear();
+                navigate('/', { replace: true });
+                
+                return { success: false, error: 'Server error during sign out' };
             }
         } catch (error) {
             console.error('Sign out error:', error);
-            // Even if the API call fails, we can still clear local data and redirect
+            
+            // Even if the API call fails, clear local data and redirect
+            clearUserProfile();
             localStorage.clear();
             sessionStorage.clear();
-            navigate('/login', { replace: true });
+            navigate('/', { replace: true });
+            
+            return { success: false, error: 'Network error during sign out' };
         }
     };
 
