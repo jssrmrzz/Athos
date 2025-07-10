@@ -2,12 +2,12 @@ import { Routes, Route } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 
 import { ReviewList } from "./components/reviews/ReviewList";
-import { BusinessSettings } from "./pages/business/BusinessSettings";
 import { BusinessUsers } from "./pages/business/BusinessUsers";
 import { BusinessProfile } from "./pages/business/BusinessProfile";
 
 
 import { MockApiProvider } from "./context/MockApiContext";
+import { UserProvider } from "./context/UserContext";
 import { MockModeToggle } from "./components/MockModeToggle";
 import { MockModeBanner } from "./components/MockModeBanner"
 import { Toaster } from "@/components/ui/toaster"
@@ -17,6 +17,7 @@ import DashboardPage from "./pages/DashboardPage";
 function App() {
     return (
         <MockApiProvider>
+            <UserProvider>
             <MockModeBanner />
             <Toaster />
 
@@ -29,7 +30,7 @@ function App() {
 
                         <Route path="/" element={<ReviewList />} />
                         <Route path="/reviews" element={<ReviewList />} />
-                        <Route path="/business/settings" element={<BusinessSettings />} />
+                        <Route path="/business/settings" element={<BusinessSettingsPage businessId="1" />} />
                         <Route path="/business/users" element={<BusinessUsers />} />
                         <Route path="/business/profile" element={<BusinessProfile />} />
 
@@ -39,6 +40,7 @@ function App() {
                     </Routes>
                 </Layout>
             </div>
+            </UserProvider>
         </MockApiProvider>
     );
 }

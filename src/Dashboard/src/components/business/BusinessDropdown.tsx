@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Settings, Users, Building, LogOut } from "lucide-react";
+import { ChevronDown, Settings, Users, Building, LogOut, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useOAuthUser } from "@/hooks/useOAuthUser";
+import { useToast } from "@/hooks/use-toast";
 
 interface BusinessDropdownProps {
     businessName?: string;
@@ -13,8 +15,11 @@ export function BusinessDropdown({
     userRole = "Business Owner" 
 }: BusinessDropdownProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isSigningOut, setIsSigningOut] = useState(false);
     const navigate = useNavigate();
     const { signOut } = useAuth();
+    const { userProfile, isAuthenticated } = useOAuthUser();
+    const { toast } = useToast();
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -34,9 +39,40 @@ export function BusinessDropdown({
     };
 
     const handleSignOutClick = async () => {
-        setIsOpen(false);
-        await signOut();
+        try {
+            setIsOpen(false);
+            setIsSigningOut(true);
+            
+            const result = await signOut();
+            
+            if (result.success) {
+                toast({
+                    title: "Signed Out",
+                    description: "You have been successfully signed out and disconnected from Google.",
+                    duration: 3000,
+                });
+            } else {
+                toast({
+                    title: "Sign Out Warning",
+                    description: result.error || "Sign out completed but there may have been connection issues.",
+                    variant: "default",
+                    duration: 3000,
+                });
+            }
+        } catch (error) {
+            toast({
+                title: "Sign Out Error",
+                description: "There was an error signing out, but you have been logged out locally.",
+                variant: "destructive",
+                duration: 3000,
+            });
+        } finally {
+            setIsSigningOut(false);
+        }
     };
+
+    // Determine what to display based on authentication status
+    const displayName = isAuthenticated && userProfile ? userProfile.name : userRole;
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -44,7 +80,23 @@ export function BusinessDropdown({
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
-                <span className="hidden sm:inline">{userRole}</span>
+                {/* Avatar or User Icon */}
+                {isAuthenticated && userProfile?.picture ? (
+                    <img 
+                        src={userProfile.picture} 
+                        alt={userProfile.name}
+                        className="h-6 w-6 rounded-full object-cover"
+                    />
+                ) : (
+                    <User className="h-4 w-4" />
+                )}
+                
+                {/* Authentication Status Indicator */}
+                {isAuthenticated && (
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                )}
+                
+                <span className="hidden sm:inline">{displayName}</span>
                 <ChevronDown className="h-4 w-4" />
             </button>
 
@@ -52,12 +104,40 @@ export function BusinessDropdown({
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-md shadow-lg border border-gray-200 dark:border-zinc-700 z-50">
                     <div className="py-1">
                         <div className="px-3 py-2 border-b border-gray-200 dark:border-zinc-700">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {businessName}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {userRole}
-                            </p>
+                            {isAuthenticated && userProfile ? (
+                                <>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <img 
+                                            src={userProfile.picture} 
+                                            alt={userProfile.name}
+                                            className="h-8 w-8 rounded-full object-cover"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                {userProfile.name}
+                                            </p>
+                                            <div className="flex items-center gap-1">
+                                                <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
+                                                <p className="text-xs text-green-600 dark:text-green-400">
+                                                    Authenticated
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {userProfile.email}
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {businessName}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {userRole} • Not authenticated
+                                    </p>
+                                </>
+                            )}
                         </div>
                         
                         <button
@@ -88,10 +168,11 @@ export function BusinessDropdown({
                         
                         <button
                             onClick={handleSignOutClick}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+                            disabled={isSigningOut}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <LogOut className="h-4 w-4" />
-                            Sign Out
+                            <LogOut className={`h-4 w-4 ${isSigningOut ? 'animate-spin' : ''}`} />
+                            {isSigningOut ? 'Signing Out...' : 'Sign Out'}
                         </button>
                     </div>
                 </div>
