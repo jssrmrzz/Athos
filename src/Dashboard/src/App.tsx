@@ -12,7 +12,6 @@ import { MockModeToggle } from "./components/MockModeToggle";
 import { MockModeBanner } from "./components/MockModeBanner"
 import { Toaster } from "@/components/ui/toaster"
 import { BusinessSettingsPage } from "./pages/BusinessSettingsPage";
-import DashboardPage from "./pages/DashboardPage";
 
 function App() {
     return (
@@ -27,16 +26,11 @@ function App() {
                 </div>
                 <Layout>
                     <Routes>
-
                         <Route path="/" element={<ReviewList />} />
                         <Route path="/reviews" element={<ReviewList />} />
                         <Route path="/business/settings" element={<BusinessSettingsPage businessId="1" />} />
                         <Route path="/business/users" element={<BusinessUsers />} />
                         <Route path="/business/profile" element={<BusinessProfile />} />
-
-                        <Route path="/" element={<DashboardPage />} />
-                        <Route path="/settings" element={<BusinessSettingsPage businessId="1" />} />
-
                     </Routes>
                 </Layout>
             </div>
