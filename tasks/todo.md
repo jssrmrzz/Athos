@@ -41,9 +41,80 @@ The "Business Owner" text in the Dashboard Topbar was static with no click funct
 - ✅ Fully responsive design with dark mode support
 - ✅ Ready for backend API integration
 
+## OAuth Configuration Fix - COMPLETED (2025-07-09)
+
+### Problem
+Google OAuth integration was failing with ERR_EMPTY_RESPONSE errors due to configuration mismatches between frontend HTTP/HTTPS protocols and backend OAuth endpoints.
+
+### Root Cause Analysis
+1. **Protocol Mismatch**: Frontend using HTTP while backend running on HTTPS
+2. **Route Configuration**: Multiple inconsistencies in OAuth redirect URIs
+3. **Mock API Interference**: Initial issue was frontend using mock API mode
+4. **Configuration Drift**: appsettings.json, Google Cloud Console, and controller routes were inconsistent
+
+### Solution Implemented
+1. **Frontend Protocol Fix** ✅
+   - Updated `useApi.ts` to use HTTPS for all API calls
+   - Changed from `http://${host}:7157` to `https://${host}:7157`
+
+2. **OAuth Route Consistency** ✅
+   - Fixed appsettings.json RedirectUri to match controller route
+   - Updated controller callback route to `/google/callback`
+   - Ensured all components use `https://localhost:7157/api/oauth/google/callback`
+
+3. **Enhanced Error Logging** ✅
+   - Added comprehensive logging to OAuth authorize endpoint
+   - Improved error visibility for debugging future issues
+
+4. **Configuration Validation** ✅
+   - Verified Google Cloud Console redirect URI matches backend
+   - Confirmed backend runs on HTTPS port 7157
+   - Validated OAuth flow configuration end-to-end
+
+### Files Modified
+- `src/Dashboard/src/hooks/useApi.ts` - Fixed HTTP to HTTPS protocol
+- `src/ReviewAutomation/Api/appsettings.json` - Corrected redirect URI
+- `src/ReviewAutomation/Api/Controllers/OAuthController.cs` - Enhanced logging
+
+### Result
+- ✅ OAuth protocol mismatch resolved
+- ✅ Configuration consistency across all components
+- ✅ Enhanced error visibility for troubleshooting
+- ✅ Ready for Google OAuth testing with proper HTTPS endpoints
+
+## Unified Sign Out Implementation - COMPLETED (2025-07-10)
+
+### Problem
+The "Sign Out" button in BusinessDropdown was not working because it called ASP.NET Core logout endpoints, but the app uses OAuth token-based authentication. Users could only disconnect via Business Settings → Integrations.
+
+### Solution Implemented
+1. **Updated useAuth Hook** ✅
+   - Changed from ASP.NET logout to OAuth revoke endpoint call
+   - Uses same `/oauth/google/revoke` endpoint as working Disconnect feature
+   - Added proper business context (`X-Business-Id` header) and error handling
+   - Maintains robust fallback that always clears local data
+
+2. **Enhanced User Experience** ✅
+   - Added loading states with spinning LogOut icon
+   - Integrated toast notifications for success/error feedback
+   - Disabled button during sign out process to prevent double-clicks
+   - Shows "Signing Out..." text during operation for clear user feedback
+
+### Files Modified
+- `src/Dashboard/src/hooks/useAuth.ts` (UPDATED - OAuth revoke logic instead of ASP.NET logout)
+- `src/Dashboard/src/components/business/BusinessDropdown.tsx` (UPDATED - Loading states, toast notifications, UX improvements)
+
+### Result
+- ✅ Sign Out button now works properly and revokes Google OAuth tokens
+- ✅ Unified authentication experience (Sign Out = Disconnect from Google)
+- ✅ Consistent user feedback and loading states across the application
+- ✅ Clear single authentication concept: Connected = Authenticated
+- ✅ No more user confusion between "sign out" and "disconnect" functionality
+
 ## Next Steps
+- Test OAuth flow end-to-end with Google authorization
+- Implement additional OAuth error handling if needed
 - Connect BusinessDropdown to backend business APIs for real data
-- Implement actual business management functionality
 - Add form validation and error handling
 - Integrate with authentication system
 

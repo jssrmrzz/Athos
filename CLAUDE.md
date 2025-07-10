@@ -59,6 +59,7 @@ Athos is a **multi-tenant SaaS platform** for automated review management with t
 ### Enterprise Features
 - **Mobile-Friendly**: Responsive design with mobile device support
 - **OAuth Ready**: Infrastructure prepared for Google Business Profile integration
+- **Unified Authentication**: Consistent sign out/disconnect experience across the application
 - **Audit Trail**: Comprehensive activity logging and user tracking
 - **API Security**: Business context validation and authorization
 
@@ -337,6 +338,13 @@ The application is configured for mobile testing:
 - **User Experience**: Consolidated navigation into single, intuitive dropdown
 - **Code Cleanup**: Removed unused imports and redundant components
 
+### Unified Sign Out Implementation (2025-07-10)
+- **Problem Resolution**: Fixed non-working Sign Out button that was calling ASP.NET Core logout instead of OAuth revocation
+- **Unified Authentication**: Made Sign Out button work the same as Disconnect feature in Business Settings
+- **Enhanced UX**: Added loading states, toast notifications, and proper error handling to Sign Out process
+- **Clear Authentication Model**: Established single authentication concept where Connected = Authenticated
+- **Consistent Behavior**: Sign Out now properly revokes Google OAuth tokens and clears user session
+
 ### Key Files Added/Modified
 **Backend (.NET 6)**:
 - `IOAuthTokenRepository` and `OAuthTokenRepository` - Token management
@@ -358,4 +366,25 @@ The application is configured for mobile testing:
 - `BusinessDropdown.tsx` - Added sign out functionality and LogOut icon
 - `Topbar.tsx` - Removed duplicate Business Owner dropdown
 - `useAuth.ts` - Created authentication hook for sign out logic
+
+**Unified Sign Out Implementation (2025-07-10)**:
+- `useAuth.ts` - Updated to call OAuth revoke endpoint instead of ASP.NET logout
+- `BusinessDropdown.tsx` - Enhanced with loading states, toast notifications, and proper UX
+
+### OAuth Configuration Fix (2025-07-09)
+- **Root Cause**: HTTP/HTTPS protocol mismatch between frontend and backend OAuth endpoints
+- **Resolution**: Updated frontend to use HTTPS protocol matching backend server
+- **Route Consistency**: Ensured all OAuth components use consistent redirect URIs
+- **Enhanced Logging**: Added comprehensive error logging to OAuth endpoints for debugging
+- **Configuration Validation**: Verified Google Cloud Console, appsettings.json, and controller routes alignment
+
+### Key Files Modified
+**Frontend Protocol Fix**:
+- `useApi.ts` - Updated from HTTP to HTTPS protocol for all API calls
+
+**Backend Configuration**:
+- `appsettings.json` - Corrected redirect URI consistency
+- `OAuthController.cs` - Enhanced error logging and debugging capabilities
+
+**Result**: ERR_EMPTY_RESPONSE OAuth errors resolved, system ready for Google OAuth testing
 
