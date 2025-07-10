@@ -19,7 +19,7 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
         public int? GetCurrentBusinessId()
         {
             var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext?.User?.Identity?.IsAuthenticated != true)
+            if (httpContext?.User?.Identity == null)
                 return null;
 
             var businessIdClaim = httpContext.User.FindFirst("BusinessId")?.Value;

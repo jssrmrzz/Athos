@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Athos.ReviewAutomation.Core.Entities;
 using Athos.ReviewAutomation.Core.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -62,12 +63,19 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
 
         public async Task<BusinessOAuthToken> ExchangeCodeForTokenAsync(int businessId, string code)
         {
+            _logger.LogInformation("Starting token exchange for business {BusinessId}", businessId);
+            
             var clientId = _configuration["GoogleOAuth:ClientId"];
             var clientSecret = _configuration["GoogleOAuth:ClientSecret"];
             var redirectUri = _configuration["GoogleOAuth:RedirectUri"];
 
+            _logger.LogInformation("OAuth configuration - ClientId: {ClientIdPresent}, RedirectUri: {RedirectUri}", 
+                !string.IsNullOrEmpty(clientId), redirectUri);
+
             if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret) || string.IsNullOrEmpty(redirectUri))
             {
+                _logger.LogError("Google OAuth configuration is missing - ClientId: {ClientId}, ClientSecret: {ClientSecretPresent}, RedirectUri: {RedirectUri}",
+                    clientId, !string.IsNullOrEmpty(clientSecret), redirectUri);
                 throw new InvalidOperationException("Google OAuth configuration is missing");
             }
 
@@ -80,10 +88,22 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                 ["grant_type"] = "authorization_code"
             };
 
+            _logger.LogInformation("Making token request to Google with code length {CodeLength}", code.Length);
             var tokenResponse = await MakeTokenRequestAsync(parameters);
+            
+            _logger.LogInformation("Received token response from Google - Access token present: {AccessTokenPresent}, Refresh token present: {RefreshTokenPresent}",
+                !string.IsNullOrEmpty(tokenResponse.AccessToken), !string.IsNullOrEmpty(tokenResponse.RefreshToken));
+            
             var token = CreateBusinessOAuthToken(businessId, tokenResponse);
+            
+            _logger.LogInformation("Created business OAuth token for business {BusinessId}, expires at {ExpiresAt}", 
+                businessId, token.ExpiresAt);
 
-            return await _oauthTokenRepository.SaveAsync(token);
+            var savedToken = await _oauthTokenRepository.SaveAsync(token);
+            _logger.LogInformation("Successfully saved OAuth token to database for business {BusinessId} with ID {TokenId}", 
+                businessId, savedToken.Id);
+
+            return savedToken;
         }
 
         public async Task<BusinessOAuthToken> RefreshTokenAsync(int businessId)
@@ -194,8 +214,12 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
             var httpClient = _httpClientFactory.CreateClient();
             var formContent = new FormUrlEncodedContent(parameters);
 
+            _logger.LogInformation("Making token request to Google OAuth endpoint: {Url}", GoogleTokenUrl);
             var response = await httpClient.PostAsync(GoogleTokenUrl, formContent);
             var responseContent = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation("Google token response: Status {StatusCode}, Content length: {ContentLength}", 
+                response.StatusCode, responseContent?.Length ?? 0);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -203,12 +227,23 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                 throw new InvalidOperationException($"Token request failed: {response.StatusCode}");
             }
 
+            _logger.LogDebug("Token response content: {Content}", responseContent);
+
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-            return tokenResponse ?? throw new InvalidOperationException("Failed to parse token response");
+            if (tokenResponse == null)
+            {
+                _logger.LogError("Failed to deserialize token response: {Content}", responseContent);
+                throw new InvalidOperationException("Failed to parse token response");
+            }
+
+            _logger.LogInformation("Successfully parsed token response - AccessToken length: {AccessTokenLength}, RefreshToken present: {RefreshTokenPresent}",
+                tokenResponse.AccessToken?.Length ?? 0, !string.IsNullOrEmpty(tokenResponse.RefreshToken));
+
+            return tokenResponse;
         }
 
         private BusinessOAuthToken CreateBusinessOAuthToken(int businessId, TokenResponse tokenResponse)
@@ -227,12 +262,59 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
             };
         }
 
+        public async Task<GoogleUserProfile?> GetUserProfileAsync(int businessId)
+        {
+            try
+            {
+                var accessToken = await GetValidAccessTokenAsync(businessId);
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    _logger.LogWarning("No valid access token found for business {BusinessId}", businessId);
+                    return null;
+                }
+
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await client.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo");
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("User profile request failed: {StatusCode} - {Content}", response.StatusCode, responseContent);
+                    return null;
+                }
+
+                var userProfile = JsonSerializer.Deserialize<GoogleUserProfile>(responseContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                _logger.LogInformation("Successfully retrieved user profile for business {BusinessId}", businessId);
+                return userProfile;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get user profile for business {BusinessId}", businessId);
+                return null;
+            }
+        }
+
         private class TokenResponse
         {
+            [JsonPropertyName("access_token")]
             public string AccessToken { get; set; } = string.Empty;
+            
+            [JsonPropertyName("refresh_token")]
             public string? RefreshToken { get; set; }
+            
+            [JsonPropertyName("expires_in")]
             public int ExpiresIn { get; set; }
+            
+            [JsonPropertyName("token_type")]
             public string TokenType { get; set; } = string.Empty;
+            
+            [JsonPropertyName("scope")]
             public string? Scope { get; set; }
         }
     }

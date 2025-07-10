@@ -31,8 +31,14 @@ namespace Athos.ReviewAutomation.Api.Middleware
                 var businessIdFromHeader = context.Request.Headers["X-Business-Id"].FirstOrDefault();
                 if (!string.IsNullOrEmpty(businessIdFromHeader) && int.TryParse(businessIdFromHeader, out var businessId))
                 {
-                    // Set business context for OAuth endpoints
-                    businessContextService.SetBusinessContext(businessId, 1, "Owner"); // Mock user for OAuth
+                    // Create a mock identity for OAuth endpoints
+                    var identity = new ClaimsIdentity();
+                    identity.AddClaim(new Claim("BusinessId", businessId.ToString()));
+                    identity.AddClaim(new Claim("UserId", "1"));
+                    identity.AddClaim(new Claim("Role", "Owner"));
+                    
+                    context.User = new ClaimsPrincipal(identity);
+                    businessContextService.SetBusinessContext(businessId, 1, "Owner");
                 }
                 await _next(context);
                 return;
