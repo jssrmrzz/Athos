@@ -16,9 +16,10 @@ namespace Athos.ReviewAutomation.Api.Middleware
 
         public async Task InvokeAsync(HttpContext context, IBusinessContextService businessContextService)
         {
-            // Skip middleware for health checks and auth endpoints
+            // Skip middleware for health checks, auth endpoints, and mock APIs
             if (context.Request.Path.StartsWithSegments("/api/health") ||
                 context.Request.Path.StartsWithSegments("/api/auth") ||
+                context.Request.Path.StartsWithSegments("/api/mock") ||
                 context.Request.Path.StartsWithSegments("/swagger"))
             {
                 await _next(context);
