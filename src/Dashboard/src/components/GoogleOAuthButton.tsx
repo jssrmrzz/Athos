@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, RefreshCw, AlertCircle } from 'lucide-react';
+import { useApi } from '@/hooks/useApi';
+import { useOAuthUser } from '@/hooks/useOAuthUser';
+import { useToast } from '@/hooks/use-toast';
 
 interface OAuthStatus {
   isConnected: boolean;
@@ -21,31 +24,68 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
   const [status, setStatus] = useState<OAuthStatus>({ isConnected: false, hasToken: false });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { baseUrl } = useApi();
+  const { checkOAuthStatus, handleOAuthSuccess, signOut } = useOAuthUser();
+  const { toast } = useToast();
 
-  // Check OAuth status on mount
+  // Check OAuth status on mount and when businessId changes
   useEffect(() => {
-    checkOAuthStatus();
+    checkOAuthStatusInternal();
   }, [businessId]);
 
-  const checkOAuthStatus = async () => {
+  // Check for OAuth success from URL params (after redirect)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthSuccess = urlParams.get('oauth');
+    
+    if (oauthSuccess === 'success') {
+      toast({
+        title: "Authentication Successful!",
+        description: "You have been successfully connected to Google.",
+        duration: 5000,
+      });
+      
+      // Remove the oauth parameter from URL
+      window.history.replaceState({}, '', window.location.pathname);
+      
+      // Refresh status and user profile
+      handleOAuthSuccess(businessId);
+      checkOAuthStatusInternal();
+    } else if (oauthSuccess === 'error') {
+      toast({
+        title: "Authentication Failed",
+        description: "There was an error connecting to Google. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      
+      // Remove the oauth parameter from URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
+  const checkOAuthStatusInternal = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/oauth/google/status`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Business-Id': businessId,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStatus(data);
-        onStatusChange?.(data);
+      const result = await checkOAuthStatus(businessId);
+      
+      if (result.success) {
+        setStatus({ 
+          isConnected: true, 
+          hasToken: true,
+          // Add other properties as needed from the response 
+        });
+        onStatusChange?.({ 
+          isConnected: true, 
+          hasToken: true 
+        });
       } else {
-        throw new Error('Failed to check OAuth status');
+        setStatus({ isConnected: false, hasToken: false });
+        onStatusChange?.({ isConnected: false, hasToken: false });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to check OAuth status');
+      setStatus({ isConnected: false, hasToken: false });
     } finally {
       setLoading(false);
     }
@@ -56,7 +96,7 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/oauth/google/authorize`, {
+      const response = await fetch(`${baseUrl}/oauth/google/authorize`, {
         headers: {
           'Content-Type': 'application/json',
           'X-Business-Id': businessId,
@@ -81,7 +121,7 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/oauth/google/refresh`, {
+      const response = await fetch(`${baseUrl}/oauth/google/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,12 +130,25 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
       });
 
       if (response.ok) {
-        await checkOAuthStatus();
+        await checkOAuthStatusInternal();
+        await handleOAuthSuccess(businessId);
+        
+        toast({
+          title: "Token Refreshed",
+          description: "Your authentication token has been refreshed successfully.",
+          duration: 3000,
+        });
       } else {
         throw new Error('Failed to refresh token');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh token');
+      toast({
+        title: "Refresh Failed",
+        description: "Failed to refresh your authentication token. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
@@ -106,7 +159,7 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/oauth/google/revoke`, {
+      const response = await fetch(`${baseUrl}/oauth/google/revoke`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,12 +168,26 @@ export const GoogleOAuthButton: React.FC<GoogleOAuthButtonProps> = ({ businessId
       });
 
       if (response.ok) {
-        await checkOAuthStatus();
+        await checkOAuthStatusInternal();
+        // Clear user profile from context
+        signOut();
+        
+        toast({
+          title: "Disconnected",
+          description: "You have been successfully disconnected from Google.",
+          duration: 3000,
+        });
       } else {
         throw new Error('Failed to revoke token');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to revoke token');
+      toast({
+        title: "Disconnect Failed",
+        description: "Failed to disconnect from Google. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }
