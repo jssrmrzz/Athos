@@ -23,18 +23,25 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure Google OAuth authentication
-builder.Services.AddAuthentication("Cookies")
+// Configure authentication with optional Google OAuth
+var authBuilder = builder.Services.AddAuthentication("Cookies")
     .AddCookie("Cookies", options =>
     {
         options.LoginPath = "/auth/google";
         options.LogoutPath = "/auth/logout";
         options.AccessDeniedPath = "/auth/access-denied";
-    })
-    .AddGoogle(googleOptions =>
+    });
+
+// Only add Google OAuth if credentials are configured
+var googleClientId = builder.Configuration["GoogleOAuth:ClientId"];
+var googleClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"];
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    authBuilder.AddGoogle(googleOptions =>
     {
-        googleOptions.ClientId = builder.Configuration["GoogleOAuth:ClientId"] ?? throw new InvalidOperationException("Google ClientId not configured");
-        googleOptions.ClientSecret = builder.Configuration["GoogleOAuth:ClientSecret"] ?? throw new InvalidOperationException("Google ClientSecret not configured");
+        googleOptions.ClientId = googleClientId;
+        googleOptions.ClientSecret = googleClientSecret;
         googleOptions.CallbackPath = "/auth/google/callback";
         
         // Add Google My Business API scopes
@@ -45,6 +52,7 @@ builder.Services.AddAuthentication("Cookies")
         // Save tokens to access Google APIs
         googleOptions.SaveTokens = true;
     });
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

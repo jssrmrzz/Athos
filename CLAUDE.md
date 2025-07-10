@@ -100,21 +100,21 @@ cd src/Dashboard && npm run lint
 
 ## Google OAuth Configuration
 
-The application now supports Google My Business OAuth integration for automated review sync:
+The application supports Google My Business OAuth integration for automated review sync with conditional registration for development flexibility:
 
 ### Configuration Setup
 1. **Google Cloud Console**:
    - Create or use existing Google Cloud project
    - Enable Google My Business API
    - Create OAuth 2.0 credentials (Web Application)
-   - Set authorized redirect URI: `http://localhost:7157/auth/google/callback`
+   - Set authorized redirect URI: `https://localhost:7157/api/oauth/google/callback`
 
-2. **Update appsettings.json**:
+2. **Update appsettings.json** (Optional - for OAuth functionality):
    ```json
    "GoogleOAuth": {
      "ClientId": "your-google-client-id",
      "ClientSecret": "your-google-client-secret",
-     "RedirectUri": "http://localhost:7157/auth/google/callback",
+     "RedirectUri": "https://localhost:7157/api/oauth/google/callback",
      "Scopes": [
        "https://www.googleapis.com/auth/business.manage",
        "https://www.googleapis.com/auth/business.reviews",
@@ -122,6 +122,8 @@ The application now supports Google My Business OAuth integration for automated 
      ]
    }
    ```
+
+**Note**: OAuth configuration is optional for development. Leave `ClientId` and `ClientSecret` empty to use mock mode without OAuth dependencies.
 
 ### OAuth Flow
 1. **Authorization**: Business owner clicks "Connect Google My Business"
@@ -345,6 +347,13 @@ The application is configured for mobile testing:
 - **Clear Authentication Model**: Established single authentication concept where Connected = Authenticated
 - **Consistent Behavior**: Sign Out now properly revokes Google OAuth tokens and clears user session
 
+### Mock Mode OAuth Configuration Fix (2025-07-10)
+- **Problem Resolution**: Fixed mock mode failing due to OAuth configuration errors during application startup
+- **Conditional OAuth Registration**: Updated Program.cs to only register Google OAuth when credentials are configured
+- **Mock API Middleware**: Enhanced BusinessContextMiddleware to skip /api/mock endpoints without authentication
+- **Development Experience**: Mock mode now works independently without requiring OAuth credentials
+- **OAuth Preservation**: Full OAuth functionality preserved when proper credentials are provided
+
 ### Key Files Added/Modified
 **Backend (.NET 6)**:
 - `IOAuthTokenRepository` and `OAuthTokenRepository` - Token management
@@ -370,6 +379,11 @@ The application is configured for mobile testing:
 **Unified Sign Out Implementation (2025-07-10)**:
 - `useAuth.ts` - Updated to call OAuth revoke endpoint instead of ASP.NET logout
 - `BusinessDropdown.tsx` - Enhanced with loading states, toast notifications, and proper UX
+
+**Mock Mode OAuth Configuration Fix (2025-07-10)**:
+- `Program.cs` - Added conditional OAuth registration to prevent startup errors
+- `BusinessContextMiddleware.cs` - Added /api/mock to skip list for authentication bypass
+- `App.tsx` - Cleaned up duplicate routes and unused imports
 
 ### OAuth Configuration Fix (2025-07-09)
 - **Root Cause**: HTTP/HTTPS protocol mismatch between frontend and backend OAuth endpoints
