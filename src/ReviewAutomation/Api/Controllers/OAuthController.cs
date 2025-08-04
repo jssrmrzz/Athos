@@ -1,5 +1,6 @@
 using Athos.ReviewAutomation.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace Athos.ReviewAutomation.Api.Controllers
 {
@@ -22,28 +23,29 @@ namespace Athos.ReviewAutomation.Api.Controllers
         }
 
         [HttpGet("google/authorize")]
-        public IActionResult AuthorizeGoogle()
+        public IActionResult AuthorizeGoogle([FromQuery] int? businessId = null)
         {
             _logger.LogInformation("OAuth authorize endpoint called");
             
-            var businessId = _businessContextService.GetCurrentBusinessId();
-            if (businessId == null)
+            // Try to get business ID from query parameter first, then from business context
+            var targetBusinessId = businessId ?? _businessContextService.GetCurrentBusinessId();
+            if (targetBusinessId == null)
             {
                 _logger.LogWarning("Business context not found in OAuth authorize request");
                 return BadRequest("Business context not found");
             }
 
-            _logger.LogInformation("Generating OAuth authorization URL for business {BusinessId}", businessId);
+            _logger.LogInformation("Generating OAuth authorization URL for business {BusinessId}", targetBusinessId);
 
             try
             {
-                var authUrl = _googleOAuthService.GetAuthorizationUrl(businessId.Value);
-                _logger.LogInformation("Successfully generated OAuth authorization URL for business {BusinessId}", businessId);
-                return Ok(new { authorizationUrl = authUrl });
+                var authUrl = _googleOAuthService.GetAuthorizationUrl(targetBusinessId.Value);
+                _logger.LogInformation("Successfully generated OAuth authorization URL for business {BusinessId}", targetBusinessId);
+                return Redirect(authUrl);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to generate authorization URL for business {BusinessId}", businessId);
+                _logger.LogError(ex, "Failed to generate authorization URL for business {BusinessId}", targetBusinessId);
                 return StatusCode(500, "Failed to generate authorization URL");
             }
         }
@@ -51,8 +53,11 @@ namespace Athos.ReviewAutomation.Api.Controllers
         [HttpGet("google/callback")]
         public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string state, [FromQuery] string? error)
         {
-            _logger.LogInformation("OAuth callback received - Code: {CodePresent}, State: {State}, Error: {Error}", 
-                !string.IsNullOrEmpty(code), state, error);
+            _logger.LogInformation("=== OAuth callback received ===");
+            _logger.LogInformation("Callback URL: {Url}", HttpContext.Request.GetDisplayUrl());
+            _logger.LogInformation("Code present: {CodePresent}, Code length: {CodeLength}", !string.IsNullOrEmpty(code), code?.Length ?? 0);
+            _logger.LogInformation("State: {State}", state);
+            _logger.LogInformation("Error: {Error}", error);
 
             if (!string.IsNullOrEmpty(error))
             {
@@ -85,8 +90,8 @@ namespace Athos.ReviewAutomation.Api.Controllers
                 _logger.LogInformation("Successfully authenticated business {BusinessId} with Google. Token expires at: {ExpiresAt}", 
                     businessId.Value, token.ExpiresAt);
                 
-                // Redirect to frontend with success message
-                return Redirect($"http://localhost:5173/business/settings?oauth=success");
+                // Redirect to frontend with success message including business ID
+                return Redirect($"http://localhost:5173/business/settings?oauth=success&businessId={businessId.Value}");
             }
             catch (Exception ex)
             {
