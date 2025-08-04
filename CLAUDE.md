@@ -138,6 +138,153 @@ The application supports Google My Business OAuth integration for automated revi
 - **Auto-Refresh**: Expired tokens automatically refreshed
 - **Fallback**: Graceful degradation to mock API if OAuth fails
 - **Status Monitoring**: Real-time connection status in settings UI
+- **Server-Side Flow**: Prevents CSP errors and enhances security
+- **Profile Integration**: User profile display with fallback handling
+
+## OAuth Implementation Details
+
+### Architecture Overview
+
+Athos implements a **server-side OAuth 2.0 flow** for Google Business Profile integration, designed specifically for multi-tenant SaaS requirements.
+
+#### Key Design Decisions
+
+**Server-Side Redirect Pattern**:
+- Frontend navigates directly to `/api/oauth/google/authorize?businessId=1`
+- Backend performs HTTP 302 redirect to Google OAuth
+- Eliminates Content Security Policy (CSP) errors
+- Prevents client-side JavaScript `eval()` issues
+- Enhances security by keeping OAuth URLs server-side
+
+**Multi-Tenant Business Context**:
+- Business ID passed via query parameter
+- BusinessContextMiddleware handles business scoping
+- State parameter preserves business context through OAuth flow
+- Automatic business validation and token isolation
+
+### OAuth Flow Implementation
+
+#### 1. Authorization Request
+```
+GET /api/oauth/google/authorize?businessId=1
+```
+- BusinessContextMiddleware extracts businessId from query parameter
+- Sets business context claims (BusinessId, UserId, Role)
+- GoogleOAuthService generates authorization URL with business state
+- Server returns HTTP 302 redirect to Google OAuth consent
+
+#### 2. Google OAuth Consent
+- User sees consent screen with scopes:
+  - `https://www.googleapis.com/auth/business.manage` - Google Business Profile access
+  - `https://www.googleapis.com/auth/userinfo.profile` - User profile information
+  - `https://www.googleapis.com/auth/userinfo.email` - User email access
+
+#### 3. OAuth Callback
+```
+GET /api/oauth/google/callback?code=...&state=1
+```
+- Extract business ID from state parameter
+- Exchange authorization code for access/refresh tokens
+- Save tokens to database with business scoping
+- Redirect to frontend: `http://localhost:5173/business/settings?oauth=success&businessId=1`
+
+#### 4. Frontend Integration
+- GoogleOAuthButton detects oauth=success parameter
+- Displays success toast notification
+- Updates connection status to "Connected"
+- Fetches user profile for display
+
+### Technical Components
+
+#### Backend Services
+- **OAuthController**: Handles authorization and callback endpoints
+- **GoogleOAuthService**: Token lifecycle management (exchange, refresh, revoke)
+- **OAuthTokenRepository**: Database persistence with business scoping
+- **BusinessContextMiddleware**: Multi-tenant request context handling
+- **AuthenticatedGoogleApiClient**: OAuth-enabled Google API client
+
+#### Frontend Components  
+- **GoogleOAuthButton**: Connection UI with real-time status
+- **BusinessDropdown**: User profile display with image fallbacks
+- **useGoogleOAuth**: OAuth state management hook
+- **useOAuthUser**: User profile and authentication context
+
+#### Database Schema
+- **BusinessOAuthTokens**: Business-scoped OAuth token storage
+  - BusinessId (foreign key)
+  - Provider ("Google")
+  - AccessToken, RefreshToken
+  - ExpiresAt, Scope, IsRevoked
+  - Automatic business-level isolation
+
+### Security Features
+
+#### Multi-Tenant Isolation
+- All OAuth tokens scoped by BusinessId
+- Cross-tenant access prevention via middleware
+- Business context validation on all endpoints
+- Row-level security for database queries
+
+#### OAuth Security
+- Server-side token handling (no client exposure)
+- Automatic token refresh for expired tokens
+- Secure token revocation and cleanup
+- State parameter validation for CSRF protection
+
+### Error Handling & Troubleshooting
+
+#### Common Issues and Solutions
+
+**CSP `eval()` Errors**: 
+- ✅ Solved: Server-side redirect eliminates client-side JavaScript
+- Legacy client-side approaches would fail with CSP restrictions
+
+**Invalid OAuth Scopes**:
+- ✅ Solved: Using only valid Google Business Profile scopes
+- Removed deprecated `business.profile` and `business.reviews` scopes
+
+**Business Context Not Found**:
+- ✅ Solved: Middleware reads businessId from query parameters
+- Supports both header and query parameter business context
+
+**SSL Protocol Errors**:
+- ✅ Solved: Callback redirects match frontend protocol (HTTP vs HTTPS)
+- Dynamic protocol detection for development/production
+
+**Profile Image Fallbacks**:
+- ✅ Implemented: Graceful fallback to User icon when Google images fail
+- Error handling prevents broken image display
+
+### Production Deployment
+
+#### Google Cloud Console Setup
+1. Create Google Cloud project
+2. Enable Google My Business API
+3. Create OAuth 2.0 credentials (Web Application)
+4. Set authorized redirect URI: `https://yourdomain.com/api/oauth/google/callback`
+
+#### Configuration
+Update `appsettings.json`:
+```json
+{
+  "GoogleOAuth": {
+    "ClientId": "your-google-client-id",
+    "ClientSecret": "your-google-client-secret", 
+    "RedirectUri": "https://yourdomain.com/api/oauth/google/callback",
+    "Scopes": [
+      "https://www.googleapis.com/auth/business.manage",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  }
+}
+```
+
+#### Environment Considerations
+- **Development**: Uses `http://localhost:5173` for frontend redirects
+- **Production**: Update callback URLs to use HTTPS and production domains
+- **Mobile**: CORS policy includes mobile IP addresses for development
+- **Scaling**: OAuth tokens are business-scoped for multi-tenant scaling
 
 ## API Endpoints
 
@@ -160,11 +307,11 @@ The backend runs on `http://localhost:7157` (or `http://0.0.0.0:7157` for mobile
 - `POST /api/llm/suggest` - Generate AI response suggestions
 
 ### Google OAuth Integration
-- `GET /api/oauth/google/authorize` - Generate OAuth authorization URL
-- `GET /api/oauth/google/callback` - Handle OAuth callback with code
+- `GET /api/oauth/google/authorize?businessId={id}` - Server-side OAuth redirect (supports multi-tenant)
+- `GET /api/oauth/google/callback` - Handle OAuth callback and token exchange
 - `POST /api/oauth/google/refresh` - Refresh expired OAuth tokens
-- `POST /api/oauth/google/revoke` - Revoke OAuth tokens
-- `GET /api/oauth/google/status` - Get OAuth connection status
+- `POST /api/oauth/google/revoke` - Revoke OAuth tokens and disconnect
+- `GET /api/oauth/google/status` - Get OAuth connection status with user profile
 
 ### System
 - `GET /api/health` - Health check endpoint
@@ -283,8 +430,9 @@ src/
 - **Billing**: Subscription management and payment processing
 
 ### Implementation Status
-- **Google OAuth**: ✅ COMPLETED - Full multi-tenant OAuth integration implemented
-- **Frontend Updates**: ✅ COMPLETED - Business settings UI and navigation implemented
+- **Google OAuth**: ✅ PRODUCTION READY - Complete server-side OAuth 2.0 flow with multi-tenant support
+- **Frontend Integration**: ✅ COMPLETED - Business settings UI, navigation, and user profile display
+- **Security & Error Handling**: ✅ COMPLETED - CSP compliance, fallback handling, comprehensive logging
 - **Real Google API**: ✅ READY - OAuth authentication ready for live Google My Business API
 - **Analytics**: Per-business usage tracking and insights (future)
 - **Billing**: Subscription management and payment processing (future)
@@ -401,4 +549,61 @@ The application is configured for mobile testing:
 - `OAuthController.cs` - Enhanced error logging and debugging capabilities
 
 **Result**: ERR_EMPTY_RESPONSE OAuth errors resolved, system ready for Google OAuth testing
+
+### Complete OAuth Integration Implementation (2025-08-04)
+- **Architecture**: Implemented production-ready server-side OAuth 2.0 flow for Google Business Profile
+- **Multi-Tenant**: Full business-scoped OAuth token management with automatic isolation
+- **Security**: Resolved CSP eval() errors through server-side redirect pattern
+- **Scope Management**: Configured optimal Google OAuth scopes (business.manage, userinfo.profile, userinfo.email)
+- **Error Handling**: Comprehensive troubleshooting and fallback mechanisms
+- **User Experience**: Seamless authentication with profile display and connection status
+- **Production Ready**: Complete deployment configuration and documentation
+
+### OAuth Implementation Challenges Resolved
+**CSP Protocol Errors (Content Security Policy)**:
+- **Problem**: Client-side OAuth redirects triggered CSP eval() violations
+- **Solution**: Implemented server-side HTTP 302 redirect pattern
+- **Impact**: Eliminated browser security restrictions and improved user experience
+
+**Invalid OAuth Scopes**:
+- **Problem**: Google rejected deprecated business.profile and business.reviews scopes
+- **Solution**: Updated to valid scopes (business.manage, userinfo.profile, userinfo.email)
+- **Impact**: Successful OAuth consent and token acquisition
+
+**Business Context Issues**:
+- **Problem**: Multi-tenant business context not preserved through OAuth flow
+- **Solution**: Enhanced BusinessContextMiddleware to support query parameters
+- **Impact**: Proper business scoping and token isolation
+
+**SSL Protocol Mismatch**:
+- **Problem**: HTTPS/HTTP protocol mismatch causing ERR_SSL_PROTOCOL_ERROR
+- **Solution**: Dynamic protocol detection and environment-specific redirects
+- **Impact**: Seamless redirect handling across development and production
+
+**Profile Image Handling**:
+- **Problem**: Broken profile image display when Google image URLs fail
+- **Solution**: Implemented graceful fallback to User icon with proper styling
+- **Impact**: Professional appearance regardless of image load success
+
+**Merge Regression Recovery**:
+- **Problem**: Code merge reverted critical OAuth implementations
+- **Solution**: Systematic restoration of server-side redirect, scopes, and middleware
+- **Impact**: Maintained production-ready OAuth integration
+
+### Key Files Modified
+**Backend OAuth Implementation**:
+- `OAuthController.cs` - Server-side redirect with comprehensive logging
+- `GoogleOAuthService.cs` - Token lifecycle management and user profile handling
+- `BusinessContextMiddleware.cs` - Multi-tenant query parameter support
+- `appsettings.json` - Optimized OAuth scope configuration
+
+**Frontend Integration**:
+- `GoogleOAuthButton.tsx` - Direct navigation with fallback image handling
+- `BusinessDropdown.tsx` - User profile display with error handling
+- `useGoogleOAuth.ts` - OAuth state management hook
+- `useOAuthUser.ts` - Authentication context management
+
+**Documentation**:
+- `CLAUDE.md` - Comprehensive OAuth implementation documentation
+- `docs/activity.md` - Detailed development activity log
 

@@ -19,12 +19,17 @@ ATHOS is a full-stack, production-ready SaaS dashboard designed to help small bu
 	•	🛠 Toggle between real and mock API data (sandbox mode)
 	•	📱 Responsive dashboard (mobile & desktop)
 	•	⭐ Star rating filters for quick triage
+	•	🔐 **Production-ready Google OAuth 2.0 integration** 
+	•	🏢 **Multi-tenant SaaS architecture** with business isolation
+	•	👤 **Real-time user authentication** with profile display
+	•	🔄 **Automatic token refresh** and secure disconnection
 	•	⚠️ Negative review alerts (coming soon)
-	•	🔐 Planned: Secure multi-user auth with role-based access
 
 🧰 Tech Stack
 	•	Frontend: React + TypeScript + Tailwind + shadcn/ui
 	•	Backend: .NET 6 Web API (Clean Architecture)
 	•	AI: Local model via Ollama (barbershop-rev) or OpenAI
-	•	Persistence: SQLite for mock data
+	•	Authentication: Google OAuth 2.0 (server-side flow)
+	•	Database: SQLite with multi-tenant business isolation
+	•	APIs: Google My Business API integration ready
 

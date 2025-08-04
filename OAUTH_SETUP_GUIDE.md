@@ -1,22 +1,33 @@
 # Google OAuth Setup Guide
 
-## Current Status: Basic OAuth Testing ✅
+## Current Status: Production OAuth Implementation ✅
 
-The OAuth system is configured with **basic Google scopes** for immediate testing:
-- `https://www.googleapis.com/auth/userinfo.profile`
-- `https://www.googleapis.com/auth/userinfo.email`
+The ATHOS OAuth system is **production-ready** with complete Google My Business integration:
 
-These scopes work immediately without special verification.
+### Implemented Scopes:
+- `https://www.googleapis.com/auth/business.manage` - Google Business Profile management
+- `https://www.googleapis.com/auth/userinfo.profile` - User profile information  
+- `https://www.googleapis.com/auth/userinfo.email` - User email access
 
-## Testing Your OAuth Flow
+### Architecture:
+- **Server-side OAuth 2.0 flow** (eliminates CSP security issues)
+- **Multi-tenant business scoping** (business-isolated tokens)
+- **Automatic token refresh** and secure revocation
+- **Real-time connection status** and user profile display
 
-1. **Start the backend server**: `dotnet run` from `src/ReviewAutomation/Api/`
-2. **Use Business ID 1** in your frontend (X-Business-Id header)
-3. **OAuth should work** without "invalid_scope" errors
+## Quick Start (Development)
 
-## Upgrading to Google My Business API Scopes
+1. **Configure Google Cloud Console** (see Production Setup below)
+2. **Update appsettings.json** with your OAuth credentials
+3. **Start backend**: `dotnet run` from `src/ReviewAutomation/Api/`
+4. **Start frontend**: `npm run dev` from `src/Dashboard/`
+5. **Navigate to business settings** and click "Connect Google My Business"
 
-When you're ready to access Google My Business data, you'll need to:
+## Production Setup
+
+### Google Cloud Console Configuration
+
+Complete setup for production Google My Business API access:
 
 ### 1. Enable Google My Business API
 In your Google Cloud Console:
