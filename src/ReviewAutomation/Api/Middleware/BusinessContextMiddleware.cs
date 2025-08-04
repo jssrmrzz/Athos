@@ -26,11 +26,14 @@ namespace Athos.ReviewAutomation.Api.Middleware
                 return;
             }
 
-            // For OAuth endpoints, allow business context from headers even without authentication
+            // For OAuth endpoints, allow business context from headers or query parameters even without authentication
             if (context.Request.Path.StartsWithSegments("/api/oauth"))
             {
                 var businessIdFromHeader = context.Request.Headers["X-Business-Id"].FirstOrDefault();
-                if (!string.IsNullOrEmpty(businessIdFromHeader) && int.TryParse(businessIdFromHeader, out var businessId))
+                var businessIdFromQuery = context.Request.Query["businessId"].FirstOrDefault();
+                var businessIdString = businessIdFromHeader ?? businessIdFromQuery;
+                
+                if (!string.IsNullOrEmpty(businessIdString) && int.TryParse(businessIdString, out var businessId))
                 {
                     // Create a mock identity for OAuth endpoints
                     var identity = new ClaimsIdentity();

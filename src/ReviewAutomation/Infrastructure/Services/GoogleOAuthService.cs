@@ -290,7 +290,12 @@ namespace Athos.ReviewAutomation.Infrastructure.Services
                     PropertyNameCaseInsensitive = true
                 });
 
-                _logger.LogInformation("Successfully retrieved user profile for business {BusinessId}", businessId);
+                if (userProfile != null)
+                {
+                    _logger.LogInformation("Successfully retrieved user profile for business {BusinessId} - Name: {Name}, Email: {Email}, Picture: {Picture}", 
+                        businessId, userProfile.Name, userProfile.Email, userProfile.Picture);
+                }
+                
                 return userProfile;
             }
             catch (Exception ex)
