@@ -5,8 +5,10 @@
 |       |  |   |  |       ||  | |  || |_____ 
 |       |  |   |  |       ||  |_|  ||_____  |
 |   _   |  |   |  |   _   ||       | _____| |
-|__| |__|  |___|  |__| |__||_______||_______|
+|__| |__|  |___|  |__| |__||_______||_______| 
 </pre>
+
+![prescreenTool](images/demo_ATHOS.gif)
 
 🧠 ATHOS – AI-Powered Review Response Automation
 
@@ -25,4 +27,4 @@ ATHOS is a full-stack, production-ready SaaS dashboard designed to help small bu
 	•	Backend: .NET 6 Web API (Clean Architecture)
 	•	AI: Local model via Ollama (barbershop-rev) or OpenAI
 	•	Persistence: SQLite for mock data
-![prescreenTool](images/demo_ATHOS.gif)
+
