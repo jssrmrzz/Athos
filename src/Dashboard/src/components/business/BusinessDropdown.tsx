@@ -86,10 +86,18 @@ export function BusinessDropdown({
                         src={userProfile.picture} 
                         alt={userProfile.name}
                         className="h-6 w-6 rounded-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
                     />
-                ) : (
-                    <User className="h-4 w-4" />
+                ) : null}
+                {isAuthenticated && userProfile?.picture && (
+                    <User className="h-4 w-4 hidden" />
                 )}
+                {!isAuthenticated || !userProfile?.picture ? (
+                    <User className="h-4 w-4" />
+                ) : null}
                 
                 {/* Authentication Status Indicator */}
                 {isAuthenticated && (
@@ -107,11 +115,24 @@ export function BusinessDropdown({
                             {isAuthenticated && userProfile ? (
                                 <>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <img 
-                                            src={userProfile.picture} 
-                                            alt={userProfile.name}
-                                            className="h-8 w-8 rounded-full object-cover"
-                                        />
+                                        <div className="relative h-8 w-8">
+                                            <img 
+                                                src={userProfile.picture} 
+                                                alt={userProfile.name}
+                                                className="h-8 w-8 rounded-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                                    if (fallback) fallback.style.display = 'flex';
+                                                }}
+                                            />
+                                            <div 
+                                                className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center"
+                                                style={{ display: 'none' }}
+                                            >
+                                                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                            </div>
+                                        </div>
                                         <div className="flex-1">
                                             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 {userProfile.name}

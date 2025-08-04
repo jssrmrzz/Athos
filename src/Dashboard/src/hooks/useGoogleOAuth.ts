@@ -49,24 +49,16 @@ export const useGoogleOAuth = ({ businessId, autoRefresh = true }: UseGoogleOAut
     }
   }, [businessId, autoRefresh]);
 
-  const authorize = useCallback(async () => {
+  const authorize = useCallback(() => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`/api/oauth/google/authorize`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Business-Id': businessId,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        window.location.href = data.authorizationUrl;
-      } else {
-        throw new Error('Failed to generate authorization URL');
-      }
+      // Direct navigation to OAuth endpoint - server will handle redirect
+      const authUrl = new URL('/api/oauth/google/authorize', window.location.origin);
+      authUrl.searchParams.set('businessId', businessId);
+      
+      window.location.href = authUrl.toString();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start OAuth flow');
       setLoading(false);
