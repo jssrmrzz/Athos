@@ -1,6 +1,18 @@
 {
+  "name": "athos",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run backend\" \"npm run frontend\" --names \"API,UI\" --prefix-colors \"blue,green\"",
+    "backend": "dotnet run --project src/ReviewAutomation/Api/Athos.ReviewAutomation.Api.csproj",
+    "frontend": "cd src/Dashboard && npm run dev",
+    "build": "dotnet build && cd src/Dashboard && npm run build",
+    "install:frontend": "cd src/Dashboard && npm install",
+    "install:all": "npm install && npm run install:frontend",
+    "dev:debug": "npx concurrently --verbose \"npm run backend\" \"npm run frontend\" --names \"API,UI\" --prefix-colors \"blue,green\""
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.0.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.7"
   }

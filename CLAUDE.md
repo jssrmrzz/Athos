@@ -65,36 +65,55 @@ Athos is a **multi-tenant SaaS platform** for automated review management with t
 
 ## Common Development Commands
 
+### ⚠️ Development Server (from Project Root)
+```bash
+# Start both frontend and backend simultaneously (RECOMMENDED)
+npm run dev
+
+# Alternative: Start individual services
+npm run backend  # .NET API only
+npm run frontend # React UI only
+
+# Debug mode with verbose logging
+npm run dev:debug
+
+# Install all dependencies
+npm run install:all
+```
+
 ### Backend (.NET)
 ```bash
-# Build the entire solution
+# Build the entire solution (from root directory)
 dotnet build
 
 # Run the API server (from root directory)
 dotnet run --project src/ReviewAutomation/Api/Athos.ReviewAutomation.Api.csproj
 
 # Create migrations (from Api directory)
+cd src/ReviewAutomation/Api
 dotnet ef migrations add MigrationName --project ../Infrastructure --context ReviewDbContext
 
-# Run migrations
+# Run migrations (from Api directory)
 dotnet ef database update --project ../Infrastructure --context ReviewDbContext
 
-# Run tests (if test project exists)
+# Run tests (if test project exists, from root)
 dotnet test
 ```
 
 ### Frontend (React)
 ```bash
-# Install dependencies
-cd src/Dashboard && npm install
+# Install dependencies (from project root)
+npm run install:frontend
+# Or manually: cd src/Dashboard && npm install
 
-# Start development server
-cd src/Dashboard && npm run dev
+# Start development server (from project root)
+npm run frontend
+# Or manually: cd src/Dashboard && npm run dev
 
-# Build for production
+# Build for production (from project root)
 cd src/Dashboard && npm run build
 
-# Run linting
+# Run linting (from Dashboard directory)
 cd src/Dashboard && npm run lint
 ```
 
