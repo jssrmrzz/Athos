@@ -17,11 +17,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Incremental Progress** - Small, focused changes
 - **Clear Communication** - Regular updates and explanations
 - **Comprehensive Documentation** - Track all activities and decisions
+- **Security First** - Never commit API keys or secrets to version control
 
 ### File Structure
 - `tasks/todo.md` - Current project tasks and completion status
 - `docs/activity.md` - Development activity log
 - `CLAUDE.md` - Project guidance and workflow (this file)
+- `appsettings.example.json` - Configuration template (safe to commit)
+- `appsettings.json` - Local configuration with secrets (git ignored)
 
 ## Architecture Overview
 
@@ -370,6 +373,30 @@ The React app includes:
 - **Multiple Providers**: OpenAI and Local LLM support
 - **Resilient Client**: Automatic retry logic with exponential backoff
 - **Fallback Handling**: Graceful degradation when LLM services fail
+
+## Security Configuration
+
+### API Keys and Secrets Management
+- **Never commit secrets**: `appsettings.json` files are git-ignored
+- **Use templates**: `appsettings.example.json` provides configuration structure
+- **Local setup**: Copy example file and add your real credentials locally
+- **Environment variables**: Consider using environment variables for production deployments
+
+### Configuration Files
+```bash
+# Safe to commit (no secrets)
+appsettings.example.json    # Template with placeholder values
+
+# Git ignored (contains secrets) 
+appsettings.json           # Your local configuration
+appsettings.Development.json # Development overrides
+appsettings.Production.json  # Production configuration
+```
+
+### OAuth Security
+- Store Google OAuth credentials only in local `appsettings.json`
+- Use conditional registration in `Program.cs` for development flexibility
+- Production deployments should use secure secret management (Azure Key Vault, etc.)
 
 ## Development Notes
 

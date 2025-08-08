@@ -40,6 +40,21 @@ ATHOS is a full-stack, production-ready SaaS dashboard designed to help small bu
 - [Node.js 18+](https://nodejs.org/)
 - [Git](https://git-scm.com/)
 
+### Initial Setup
+```bash
+# Clone and navigate to project
+git clone <repository-url>
+cd Athos
+
+# Create your local configuration file
+cp src/ReviewAutomation/Api/appsettings.example.json src/ReviewAutomation/Api/appsettings.json
+
+# Edit appsettings.json with your credentials (optional for mock mode)
+# - Add your Google OAuth ClientId and ClientSecret for real API integration
+# - Add your OpenAI API key if using OpenAI instead of local LLM
+# - Leave OAuth fields empty to use mock mode for development
+```
+
 ### ⚠️ Important: Run from Project Root
 All commands below must be run from the project root directory (`/Athos/`), not from subdirectories.
 
